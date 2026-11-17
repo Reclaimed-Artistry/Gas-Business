@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import type { DeliveryLocation, RetailerPublic } from '../types';
 import { formatNaira } from '../lib/format';
+import { createBaseTileLayer } from '../lib/mapTiles';
 
 interface RetailerMapProps {
   retailers: RetailerPublic[];
@@ -48,10 +49,7 @@ export function RetailerMap({
       scrollWheelZoom: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      maxZoom: 19,
-    }).addTo(map);
+    createBaseTileLayer().addTo(map);
 
     coverageLayerRef.current = L.layerGroup().addTo(map);
     markersLayerRef.current = L.layerGroup().addTo(map);

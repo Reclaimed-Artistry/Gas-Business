@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import { createBaseTileLayer } from '../lib/mapTiles';
 
 export interface AdminRetailerPoint {
   id: number;
@@ -44,10 +45,7 @@ export function AdminRetailerMap({
       center: [5.0377, 7.9128],
       zoom: 12,
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      maxZoom: 19,
-    }).addTo(map);
+    createBaseTileLayer().addTo(map);
 
     layerRef.current = L.layerGroup().addTo(map);
     map.on('click', (e: L.LeafletMouseEvent) => {

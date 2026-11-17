@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Navigation } from 'lucide-react';
+import { createBaseTileLayer } from '../lib/mapTiles';
 
 interface DeliveryTrackingMapProps {
   retailer: { name: string; address: string; lat: number; lng: number };
@@ -27,10 +28,7 @@ export function DeliveryTrackingMap({
       center: [retailer.lat, retailer.lng],
       zoom: 13,
     });
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      maxZoom: 19,
-    }).addTo(map);
+    createBaseTileLayer().addTo(map);
     layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
     return () => {
