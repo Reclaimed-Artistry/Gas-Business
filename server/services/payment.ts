@@ -495,7 +495,7 @@ export async function verifyGatewayTransaction(params: {
 
   let gatewayApproved = params.simulatedOutcome !== 'FAILED';
   let providerPayload: Record<string, unknown> = {
-    verifiedBy: 'BlueFlame Server Verification Engine',
+    verifiedBy: 'Gasflo Server Verification Engine',
     provider: tx.provider,
     channel: tx.channel,
     authorizationCode: `AUTH_${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
@@ -672,7 +672,7 @@ export async function verifyGatewayTransaction(params: {
         userId: Number(tx.user_id),
         roleScope: 'CUSTOMER',
         title: 'Wallet Funded Successfully',
-        message: `${formatNairaServer(amountKobo)} has been credited to your BlueFlame wallet via ${tx.provider}. New balance: ${formatNairaServer(funded.newBalance)}. Ref: ${tx.reference}.`,
+        message: `${formatNairaServer(amountKobo)} has been credited to your Gasflo wallet via ${tx.provider}. New balance: ${formatNairaServer(funded.newBalance)}. Ref: ${tx.reference}.`,
         type: 'WALLET',
         channels: ['IN_APP', 'EMAIL', 'SMS'],
       });
@@ -1003,7 +1003,7 @@ export async function executeAdminRefund(params: {
     userId: res.customerId,
     roleScope: 'CUSTOMER',
     title: 'Refund Credited',
-    message: `Your refund of ${formatNairaServer(res.amountKobo)} for order ${res.orderReference} has been processed to your ${res.destination === 'WALLET' ? 'BlueFlame Wallet' : 'original payment method'}. Ref: ${res.refundReference}.`,
+    message: `Your refund of ${formatNairaServer(res.amountKobo)} for order ${res.orderReference} has been processed to your ${res.destination === 'WALLET' ? 'Gasflo Wallet' : 'original payment method'}. Ref: ${res.refundReference}.`,
     type: 'REFUND',
     channels: ['IN_APP', 'EMAIL', 'SMS'],
     relatedOrderId: params.orderId,

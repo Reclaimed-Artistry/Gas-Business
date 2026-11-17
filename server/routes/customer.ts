@@ -14,6 +14,14 @@ import {
 import { broadcastOrderUpdate, createNotification, notifyAllAdmins } from '../services/events.js';
 import { asyncHandler } from '../lib/asyncHandler.js';
 
+// A disconnected phone must not appear to be broadcasting live indefinitely.
+function locationIsFresh(value: unknown): boolean {
+  if (!value) return false;
+  const raw = String(value);
+  const timestamp = Date.parse(/(?:Z|[+-]\d\d:?\d\d)$/i.test(raw) ? raw : raw.replace(' ', 'T') + 'Z');
+  return Number.isFinite(timestamp) && Date.now() - timestamp >= -30000 && Date.now() - timestamp < 120000;
+}
+
 const router = Router();
 router.use(requireAuth, requireRole('CUSTOMER'));
 
@@ -233,7 +241,7 @@ router.get(
     ]);
 
     const formatted = orders.map((o) => {
-      const isTrackingActive = activeStatuses.has(String(o.status)) && Number(o.dispatcher_tracking_enabled) === 1;
+      const isTrackingActive = activeStatuses.has(String(o.status)) && Number(o.dispatcher_tracking_enabled) === 1 && locationIsFresh(o.dispatcher_location_updated_at);
       const { retailer_supply_total_kobo: _s, platform_margin_kobo: _m, ...safeOrder } = o;
       return {
         ...safeOrder,
@@ -294,7 +302,7 @@ router.get(
       'COLLECTED_FROM_RETAILER',
       'IN_TRANSIT',
     ]);
-    const isTrackingActive = activeStatuses.has(String(order.status)) && Number(order.dispatcher_tracking_enabled) === 1;
+    const isTrackingActive = activeStatuses.has(String(order.status)) && Number(order.dispatcher_tracking_enabled) === 1 && locationIsFresh(order.dispatcher_location_updated_at);
     const { retailer_supply_total_kobo: _s, platform_margin_kobo: _m, ...safeOrder } = order;
 
     res.json({
@@ -343,7 +351,7 @@ router.post(
     if (rawMethod === 'CASH' || rawMethod === 'CASH_ON_DELIVERY' || rawMethod === 'COD') {
       res.status(400).json({
         error:
-          'Cash on delivery and physical cash payments are strictly prohibited. Please pay electronically via your BlueFlame Wallet or Paystack/Flutterwave.',
+          'Cash on delivery and physical cash payments are strictly prohibited. Please pay electronically via your Gasflo Wallet or Paystack/Flutterwave.',
       });
       return;
     }

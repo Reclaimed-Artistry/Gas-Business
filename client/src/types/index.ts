@@ -163,6 +163,7 @@ export interface CustomerOrder {
   dispatcher_rating: number | null;
   dispatcher_lat: number | null;
   dispatcher_lng: number | null;
+  dispatcher_location_updated_at?: string | null;
   liveTrackingActive: boolean;
   status: string;
   payment_method: 'WALLET' | 'DIRECT_ONLINE';

@@ -345,7 +345,7 @@ export function AdminDashboard() {
         <div>
           <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#EAF3FF]/80">
             <ShieldCheck className="w-4 h-4" />
-            BlueFlame Operations Administrator Control Center
+            Gasflo Operations Administrator Control Center
           </div>
           <h1 className="text-2xl font-extrabold mt-0.5">Central Marketplace & Logistics Command</h1>
           <p className="text-xs text-[#EAF3FF]/80 mt-0.5">

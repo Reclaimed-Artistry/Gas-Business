@@ -95,7 +95,7 @@ export function ReceiptModal({
               <span className="text-[#64748B]">Payment Method: </span>
               <span className="font-semibold text-[#172B4D]">
                 {receipt.paymentMethod === 'WALLET'
-                  ? 'BlueFlame Digital Wallet'
+                  ? 'Gasflo Digital Wallet'
                   : `Direct Online (${receipt.gatewayProvider || 'Gateway'})`}
               </span>
             </div>

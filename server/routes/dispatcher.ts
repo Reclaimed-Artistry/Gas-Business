@@ -121,6 +121,12 @@ router.patch(
       return;
     }
 
+    if ((parsed.data.lat === undefined) !== (parsed.data.lng === undefined) ||
+        (parsed.data.trackingEnabled !== false && parsed.data.lat === undefined)) {
+      res.status(400).json({ error: 'A current GPS latitude and longitude are required to share location.' });
+      return;
+    }
+
     const db = getDb();
     const activeOrders = await db.all<{ id: number; customer_id: number }>(
       `
@@ -131,15 +137,14 @@ router.patch(
       req.user!.id
     );
 
-    if (parsed.data.trackingEnabled === true && activeOrders.length === 0) {
+    if (parsed.data.trackingEnabled !== false && activeOrders.length === 0) {
       res.status(400).json({
         error: 'Live location sharing is restricted to active deliveries for privacy protection.',
       });
       return;
     }
 
-    const nextTracking =
-      parsed.data.trackingEnabled !== undefined ? (parsed.data.trackingEnabled ? 1 : 0) : activeOrders.length > 0 ? 1 : 0;
+    const nextTracking = parsed.data.trackingEnabled === false ? 0 : 1;
 
     await db.run(
       `
@@ -148,12 +153,13 @@ router.patch(
           current_lng = COALESCE(?, current_lng),
           location_tracking_enabled = ?,
           location_updated_at = datetime('now')
-      WHERE user_id = ?
+      WHERE user_id = ? AND (? = 1 OR location_tracking_enabled = 1)
     `,
       parsed.data.lat ?? null,
       parsed.data.lng ?? null,
       nextTracking,
-      req.user!.id
+      req.user!.id,
+      parsed.data.trackingEnabled === undefined ? 0 : 1
     );
 
     const updated = (await db.get<{
@@ -166,19 +172,24 @@ router.patch(
       req.user!.id
     ))!;
 
+    if (parsed.data.trackingEnabled === undefined && Number(updated.location_tracking_enabled) !== 1) {
+      res.status(409).json({ error: 'GPS sharing is paused.' });
+      return;
+    }
+
     for (const ord of activeOrders) {
       emitEventToUser(Number(ord.customer_id), 'dispatcher_location', {
         orderId: Number(ord.id),
-        lat: updated.current_lat,
-        lng: updated.current_lng,
+        lat: Number(updated.location_tracking_enabled) === 1 ? updated.current_lat : null,
+        lng: Number(updated.location_tracking_enabled) === 1 ? updated.current_lng : null,
         trackingEnabled: Number(updated.location_tracking_enabled) === 1,
         updatedAt: updated.location_updated_at,
       });
     }
     emitEventToRole('ADMIN', 'dispatcher_location', {
       dispatcherId: req.user!.id,
-      lat: updated.current_lat,
-      lng: updated.current_lng,
+      lat: Number(updated.location_tracking_enabled) === 1 ? updated.current_lat : null,
+      lng: Number(updated.location_tracking_enabled) === 1 ? updated.current_lng : null,
       trackingEnabled: Number(updated.location_tracking_enabled) === 1,
     });
 
@@ -370,7 +381,7 @@ router.post(
       userId: Number(updated.customer_id),
       roleScope: 'CUSTOMER',
       title: 'Delivery Issue Reported',
-      message: `Your dispatcher reported an issue with order ${updated.order_reference} (${parsed.data.reason.replace(/_/g, ' ')}). BlueFlame Uyo Operations has been notified to resolve, reschedule, or process a refund.`,
+      message: `Your dispatcher reported an issue with order ${updated.order_reference} (${parsed.data.reason.replace(/_/g, ' ')}). Gasflo Uyo Operations has been notified to resolve, reschedule, or process a refund.`,
       type: 'ALERT',
       channels: ['IN_APP', 'SMS'],
       relatedOrderId: orderId,

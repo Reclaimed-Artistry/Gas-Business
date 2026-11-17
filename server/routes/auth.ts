@@ -191,7 +191,7 @@ router.post(
     const email = supaUser.email!.trim().toLowerCase();
     const meta = (supaUser.user_metadata || {}) as Record<string, unknown>;
     const fullName =
-      String(meta.full_name || meta.name || email.split('@')[0] || 'BlueFlame Customer').trim().slice(0, 120);
+      String(meta.full_name || meta.name || email.split('@')[0] || 'Gasflo Customer').trim().slice(0, 120);
     const avatarUrl =
       typeof meta.avatar_url === 'string'
         ? meta.avatar_url

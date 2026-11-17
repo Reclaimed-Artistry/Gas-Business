@@ -58,7 +58,7 @@ app.use((_req, _res, next) => {
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    platform: 'BlueFlame Cooking Gas Marketplace · Uyo, Akwa Ibom',
+    platform: 'Gasflo Cooking Gas Marketplace · Uyo, Akwa Ibom',
     database: isSupabaseDbEnabled() ? 'supabase-postgresql (blueflame)' : 'local-sqlite',
     googleAuth: isSupabaseAuthEnabled() ? 'supabase-google-oauth' : 'disabled',
     runtime: process.env.VERCEL ? 'vercel-serverless' : 'node-server',
@@ -78,12 +78,12 @@ app.use('/api/admin', adminRoutes);
 app.all(['/api/retailer/*', '/api/vendor/*'], (_req, res) => {
   res.status(403).json({
     error:
-      'Retailers do not have self-service accounts or dashboards. All retailers are centrally managed by BlueFlame Operations.',
+      'Retailers do not have self-service accounts or dashboards. All retailers are centrally managed by Gasflo Operations.',
   });
 });
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('[BlueFlame API Error]', err);
+  console.error('[Gasflo API Error]', err);
   res.status(500).json({ error: 'An unexpected server error occurred. Please try again.' });
 });
 

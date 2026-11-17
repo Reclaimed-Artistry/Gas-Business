@@ -37,7 +37,7 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
         dispatcherFailedAttemptAllowanceKobo: 50000,
         defaultRefundDestination: 'WALLET',
         policySummary:
-          'Orders cancelled before product collection receive a 100% refund to the BlueFlame Wallet. Orders cancelled after retailer collection may incur a 10% handling deduction to compensate dispatcher logistics.',
+          'Orders cancelled before product collection receive a 100% refund to the Gasflo Wallet. Orders cancelled after retailer collection may incur a 10% handling deduction to compensate dispatcher logistics.',
       })
     );
 
@@ -55,29 +55,29 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
         supportHours: 'Daily, 6:30 AM – 9:30 PM WAT (Uyo Operations Desk)',
         faqs: [
           {
-            question: 'Where does BlueFlame currently operate?',
+            question: 'Where does Gasflo currently operate?',
             answer:
-              'BlueFlame currently operates predominantly across Uyo, Akwa Ibom State — covering Ewet Housing, Shelter Afrique, Oron Road, Ikot Ekpene Road, Abak Road, Nwaniba, Osongama Estate, Aka Road, Itam, and Ring Road III. Our platform is built to expand to Eket, Ikot Ekpene, and more Nigerian cities as we grow.',
+              'Gasflo currently operates predominantly across Uyo, Akwa Ibom State — covering Ewet Housing, Shelter Afrique, Oron Road, Ikot Ekpene Road, Abak Road, Nwaniba, Osongama Estate, Aka Road, Itam, and Ring Road III. Our platform is built to expand to Eket, Ikot Ekpene, and more Nigerian cities as we grow.',
           },
           {
-            question: 'How does BlueFlame guarantee accurate gas weight and pricing?',
+            question: 'How does Gasflo guarantee accurate gas weight and pricing?',
             answer:
               'Every participating gas retailer in Uyo is vetted, registered, and centrally managed by our operations team. Product prices and digital-scale refill weights are verified and published transparently before you pay.',
           },
           {
             question: 'Can I pay cash on delivery to the dispatcher?',
             answer:
-              'No. BlueFlame operates a strictly cashless electronic payment system for customer safety and transparent auditing. Pay instantly via your funded BlueFlame Digital Wallet or Paystack/Flutterwave (card, bank transfer, or USSD). Dispatchers never collect cash.',
+              'No. Gasflo operates a strictly cashless electronic payment system for customer safety and transparent auditing. Pay instantly via your funded Gasflo Digital Wallet or Paystack/Flutterwave (card, bank transfer, or USSD). Dispatchers never collect cash.',
           },
           {
             question: 'How do I sign in quickly?',
             answer:
-              'You can sign in with Google in one tap or use your email and password. New Google sign-ins automatically set up a secure Customer account and BlueFlame Wallet ready for Uyo cooking gas orders.',
+              'You can sign in with Google in one tap or use your email and password. New Google sign-ins automatically set up a secure Customer account and Gasflo Wallet ready for Uyo cooking gas orders.',
           },
           {
             question: 'What happens if a retailer runs out of stock or delivery fails?',
             answer:
-              'Dispatchers report any collection or delivery issue directly to BlueFlame Uyo Operations. Our team either reassigns your order promptly or processes an audited refund directly to your BlueFlame Wallet.',
+              'Dispatchers report any collection or delivery issue directly to Gasflo Uyo Operations. Our team either reassigns your order promptly or processes an audited refund directly to your Gasflo Wallet.',
           },
         ],
         testimonials: [
@@ -93,7 +93,7 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
             location: 'Shelter Afrique, Uyo',
             rating: 5,
             quote:
-              'Zero arguments about cash change or short-weighted cylinders. The electronic receipt, digital seal, and 4-digit delivery PIN make BlueFlame Uyo truly dependable.',
+              'Zero arguments about cash change or short-weighted cylinders. The electronic receipt, digital seal, and 4-digit delivery PIN make Gasflo Uyo truly dependable.',
           },
           {
             name: 'Inemesit Okoro',
@@ -337,7 +337,7 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
     const r1_12 = rpLookup.get(`${r1}-${p12kg}`)!;
     const ord1Id = (await tdb.run(ordSql, 'BF-ORD-20261111-1001', c1, r1, d1, 'DELIVERED', 'WALLET', 'PAID', 'BF-WLP-20261111-E01', null, 'House 18, F-Line, Ewet Housing Estate, Uyo', 'Ewet Housing', 'Uyo', 'Akwa Ibom', 5.0176, 7.9435, 'Call at Ewet Housing main gate', 0.4, 22, r1_12.sell, r1_12.supply, 95000, 29000, 0, r1_12.sell + 95000 + 29000, r1_12.sell - r1_12.supply + 29000, '4829', 'Customer confirmed digital weight seal and signed off with PIN 4829.', '', '', '2026-11-11 10:12:00', '2026-11-11 10:15:00', '2026-11-11 10:25:00', '2026-11-11 10:28:00', '2026-11-11 10:38:00', '2026-11-11 10:08:00')).lastInsertRowid;
     await tdb.run(oiSql, ord1Id, r1_12.id, p12kg, '12.5kg Cooking Gas Refill', 12.5, 1, r1_12.sell, r1_12.supply, r1_12.sell);
-    await tdb.run(histSql, ord1Id, 'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', c1, 'SYSTEM', 'Paid via BlueFlame Wallet', '2026-11-11 10:08:05');
+    await tdb.run(histSql, ord1Id, 'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', c1, 'SYSTEM', 'Paid via Gasflo Wallet', '2026-11-11 10:08:05');
     await tdb.run(histSql, ord1Id, 'AWAITING_DISPATCHER_ASSIGNMENT', 'ASSIGNED_TO_DISPATCHER', adminId, 'ADMIN', 'Assigned to Ubong Etim', '2026-11-11 10:12:00');
     await tdb.run(histSql, ord1Id, 'IN_TRANSIT', 'DELIVERED', d1, 'DISPATCHER', 'Delivered successfully in Ewet Housing with PIN 4829', '2026-11-11 10:38:00');
     await tdb.run(stlSql, r1, ord1Id, r1_12.sell, r1_12.supply, r1_12.sell - r1_12.supply, 'PAID', 'BF-STL-20261112-001', '2026-11-12 16:00:00', '2026-11-11 10:08:05');
@@ -374,7 +374,7 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
     const r1_6 = rpLookup.get(`${r1}-${p6kg}`)!;
     const ord4Id = (await tdb.run(ordSql, 'BF-ORD-20261116-1004', c1, r1, d1, 'ASSIGNED_TO_DISPATCHER', 'WALLET', 'PAID', 'BF-WLP-20261116-9042', null, 'Plot 32 Banking Layout, Udo Udoma Avenue, Uyo', 'Udo Udoma', 'Uyo', 'Akwa Ibom', 5.0138, 7.9284, 'Drop at security reception post by main car park.', 2.1, 25, r1_6.sell, r1_6.supply, 115000, 20000, 0, r1_6.sell + 115000 + 20000, r1_6.sell - r1_6.supply + 20000, '3907', '', '', '', '2026-11-16 10:15:00', null, null, null, null, '2026-11-16 10:10:00')).lastInsertRowid;
     await tdb.run(oiSql, ord4Id, r1_6.id, p6kg, '6kg Cooking Gas Refill', 6, 1, r1_6.sell, r1_6.supply, r1_6.sell);
-    await tdb.run(histSql, ord4Id, 'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', c1, 'SYSTEM', 'Paid via BlueFlame Wallet', '2026-11-16 10:10:05');
+    await tdb.run(histSql, ord4Id, 'AWAITING_PAYMENT', 'PAYMENT_CONFIRMED', c1, 'SYSTEM', 'Paid via Gasflo Wallet', '2026-11-16 10:10:05');
     await tdb.run(histSql, ord4Id, 'AWAITING_DISPATCHER_ASSIGNMENT', 'ASSIGNED_TO_DISPATCHER', adminId, 'ADMIN', 'Assigned to Ubong Etim', '2026-11-16 10:15:00');
     await tdb.run(stlSql, r1, ord4Id, r1_6.sell, r1_6.supply, r1_6.sell - r1_6.supply, 'PENDING', 'BF-STL-20261116-004', null, '2026-11-16 10:10:05');
 
@@ -399,7 +399,7 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
     await tdb.run(histSql, ord6Id, 'IN_TRANSIT', 'DELIVERY_FAILED', d3, 'DISPATCHER', 'Reported: Customer unavailable at Abak Road delivery address', '2026-11-15 17:52:00');
     await tdb.run(stlSql, r4, ord6Id, r4_12.sell, r4_12.supply, r4_12.sell - r4_12.supply, 'PENDING', 'BF-STL-20261115-006', null, '2026-11-15 17:05:10');
 
-    await tdb.run(`INSERT INTO complaints (ticket_number, customer_id, order_id, category, subject, description, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?, 'OPEN', 'HIGH', '2026-11-15 19:10:00')`, 'BF-TKT-20261115-01', c3, ord6Id, 'DELIVERY_ISSUE', 'Missed delivery on Abak Road — please reschedule or refund', 'My phone battery died briefly while I stepped out to Plaza. Kindly reschedule the Uyo delivery for tomorrow morning or refund my BlueFlame wallet.');
+    await tdb.run(`INSERT INTO complaints (ticket_number, customer_id, order_id, category, subject, description, status, priority, created_at) VALUES (?, ?, ?, ?, ?, ?, 'OPEN', 'HIGH', '2026-11-15 19:10:00')`, 'BF-TKT-20261115-01', c3, ord6Id, 'DELIVERY_ISSUE', 'Missed delivery on Abak Road — please reschedule or refund', 'My phone battery died briefly while I stepped out to Plaza. Kindly reschedule the Uyo delivery for tomorrow morning or refund my Gasflo wallet.');
 
     const notifSql = `INSERT INTO notifications (user_id, role_scope, title, message, type, channels_json, related_order_id, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     await tdb.run(notifSql, c1, 'CUSTOMER', 'Your Cooking Gas Is On The Way!', 'Ubong Etim is heading along Oron Road toward Ewet Housing with order BF-ORD-20261116-1003. Have your confirmation PIN (6194) ready.', 'DELIVERY', '["IN_APP","SMS"]', ord3Id, 0, '2026-11-16 09:22:00');
@@ -409,14 +409,14 @@ export async function seedDatabaseIfEmpty(): Promise<void> {
     await tdb.run(notifSql, adminId, 'ADMIN', 'Failed Delivery Requires Action', 'Dispatcher Anietie Essien reported CUSTOMER_UNAVAILABLE on Abak Road order BF-ORD-20261115-1006.', 'ALERT', '["IN_APP","EMAIL"]', ord6Id, 0, '2026-11-15 17:52:00');
   });
 
-  console.log('[BlueFlame] Seeded Uyo, Akwa Ibom State cooking gas marketplace database.');
+  console.log('[Gasflo] Seeded Uyo, Akwa Ibom State cooking gas marketplace database.');
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   seedDatabaseIfEmpty()
-    .then(() => console.log('[BlueFlame] Seed check complete.'))
+    .then(() => console.log('[Gasflo] Seed check complete.'))
     .catch((err) => {
-      console.error('[BlueFlame] Seed error:', err);
+      console.error('[Gasflo] Seed error:', err);
       process.exit(1);
     });
 }

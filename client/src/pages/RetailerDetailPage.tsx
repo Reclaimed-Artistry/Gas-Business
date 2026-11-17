@@ -178,7 +178,7 @@ export function RetailerDetailPage() {
               <div>
                 <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1769C2]">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  BlueFlame Verified & Centrally Managed Retailer
+                  Gasflo Verified & Centrally Managed Retailer
                 </div>
                 <h1 className="text-2xl font-extrabold text-[#06265B] mt-1">{retailer.business_name}</h1>
                 <p className="text-xs text-[#64748B] mt-1 flex items-center gap-1.5">

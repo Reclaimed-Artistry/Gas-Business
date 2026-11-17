@@ -12,7 +12,7 @@ export function Footer() {
             <BrandLogo inverted />
             <p className="text-xs text-[#EAF3FF]/80 leading-relaxed">
               Uyo’s centrally verified cooking gas marketplace and managed LPG delivery network in Akwa Ibom State.
-              Every listed depot is vetted, monitored, and price-verified by BlueFlame Operations — built to expand
+              Every listed depot is vetted, monitored, and price-verified by Gasflo Operations — built to expand
               across Akwa Ibom and neighbouring states.
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#073B8C] border border-white/15 text-xs font-semibold text-[#EAF3FF]">
@@ -83,7 +83,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#EAF3FF]/65">
-          <p>© {new Date().getFullYear()} BlueFlame Energy Logistics Nigeria Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Gasflo. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <span>Dispatchers never accept physical cash.</span>
             <span>·</span>

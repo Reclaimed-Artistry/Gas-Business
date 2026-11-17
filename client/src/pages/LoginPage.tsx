@@ -257,7 +257,7 @@ export function LoginPage() {
               {submitting
                 ? 'Authenticating...'
                 : mode === 'login'
-                  ? 'Sign In to BlueFlame'
+                  ? 'Sign In to Gasflo'
                   : 'Create Customer Account & Wallet'}
             </button>
           </form>
@@ -265,7 +265,7 @@ export function LoginPage() {
           <div className="p-3.5 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-xs text-[#073B8C] leading-relaxed">
             <strong>Platform Access Policy:</strong> Public self-registration & Google Sign-In automatically provision{' '}
             <strong>Customer</strong> accounts with digital wallets. Dispatcher accounts are onboarded exclusively by
-            BlueFlame Operations, and Uyo gas retailers are centrally managed without self-service logins.
+            Gasflo Operations, and Uyo gas retailers are centrally managed without self-service logins.
           </div>
         </div>
 

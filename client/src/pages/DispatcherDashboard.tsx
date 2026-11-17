@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Truck,
   MapPin,
@@ -139,6 +139,12 @@ export function DispatcherDashboard() {
     });
   }, [loadAll]);
 
+  // Serverless event streams do not broadcast across instances.
+  useEffect(() => {
+    const timer = window.setInterval(() => void loadAll(), 30000);
+    return () => window.clearInterval(timer);
+  }, [loadAll]);
+
   const flash = (msg: string) => {
     setNotice(msg);
     setError('');
@@ -159,37 +165,44 @@ export function DispatcherDashboard() {
     }
   };
 
+  const lastGpsPost = useRef(0);
+  useEffect(() => {
+    if (!profile?.location_tracking_enabled || !navigator.geolocation) return;
+    let cancelled = false;
+    const sendPosition = (position: GeolocationPosition) => {
+      if (cancelled || Date.now() - position.timestamp > 30000 || Date.now() - lastGpsPost.current < 14000) return;
+      lastGpsPost.current = Date.now();
+      void apiRequest<{location: DispatcherProfile}>('/api/dispatcher/location', {
+        method: 'PATCH', body: { lat: position.coords.latitude, lng: position.coords.longitude },
+      }).then(({location}) => {
+        if (!cancelled) setProfile(prev => prev ? { ...prev, ...location } : prev);
+      }).catch(err => { if (!cancelled) setError(`GPS update failed: ${err.message}`); });
+    };
+    const reportError = (err: GeolocationPositionError) => {
+      if (!cancelled) setError(`GPS unavailable: ${err.message}. Check location permissions.`);
+    };
+    const options = { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 };
+    const watchId = navigator.geolocation.watchPosition(sendPosition, reportError, options);
+    const timer = window.setInterval(() => navigator.geolocation.getCurrentPosition(sendPosition, reportError, options), 20000);
+    return () => { cancelled = true; navigator.geolocation.clearWatch(watchId); window.clearInterval(timer); };
+  }, [profile?.location_tracking_enabled]);
+
   const handleToggleTracking = async (enable: boolean) => {
     setError('');
     try {
-      await apiRequest('/api/dispatcher/location', {
-        method: 'PATCH',
-        body: { trackingEnabled: enable },
-      });
-      flash(enable ? 'Live GPS location sharing enabled for active deliveries.' : 'Live GPS location sharing paused.');
-      void loadAll();
+      let coords: { lat: number; lng: number } | undefined;
+      if (enable) {
+        if (!navigator.geolocation) throw new Error('Your browser does not support GPS location.');
+        const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }));
+        coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      }
+      await apiRequest('/api/dispatcher/location', { method: 'PATCH', body: { ...coords, trackingEnabled: enable } });
+      lastGpsPost.current = Date.now();
+      flash(enable ? 'GPS sharing enabled while this page is open.' : 'GPS sharing paused.');
+      await loadAll();
     } catch (err) {
-      setError((err as Error).message);
-    }
-  };
-
-  const handleSimulateGpsStep = async (job: DispatcherJob) => {
-    if (!profile) return;
-    setError('');
-    // Move dispatcher marker 35% closer toward customer delivery point so live tracking is visibly verifiable
-    const curLat = profile.current_lat || job.retailer_lat;
-    const curLng = profile.current_lng || job.retailer_lng;
-    const nextLat = curLat + (job.delivery_lat - curLat) * 0.35;
-    const nextLng = curLng + (job.delivery_lng - curLng) * 0.35;
-    try {
-      await apiRequest('/api/dispatcher/location', {
-        method: 'PATCH',
-        body: { lat: nextLat, lng: nextLng, trackingEnabled: true },
-      });
-      flash('Live GPS coordinates broadcast to customer tracking map & Operations.');
-      void loadAll();
-    } catch (err) {
-      setError((err as Error).message);
+      setError((err as Error).message || 'Unable to obtain GPS location. Check your browser permissions.');
     }
   };
 
@@ -307,7 +320,7 @@ export function DispatcherDashboard() {
               <strong>{profile?.location_tracking_enabled ? 'ACTIVE' : 'INACTIVE'}</strong>
               <span className="text-[#EAF3FF]/70 hidden sm:inline">
                 {' '}
-                (Restricted strictly to active deliveries; stops automatically upon handover)
+                (Active deliveries only; keep this page open and allow location access)
               </span>
             </span>
           </div>
@@ -524,23 +537,15 @@ export function DispatcherDashboard() {
                                 lat: profile.current_lat,
                                 lng: profile.current_lng,
                                 active: profile.location_tracking_enabled === 1,
+                                updatedAt: profile.location_updated_at,
                               }
                             : null
                         }
                         heightClass="h-[250px]"
                         showExternalNavLinks
+                        status={job.status}
                       />
-                      {['ACCEPTED_BY_DISPATCHER', 'AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER', 'IN_TRANSIT'].includes(
-                        job.status
-                      ) && (
-                        <button
-                          type="button"
-                          onClick={() => void handleSimulateGpsStep(job)}
-                          className="px-3 py-1.5 rounded-lg border border-[#BFDBFE] bg-[#EAF3FF] text-[#073B8C] text-xs font-bold hover:bg-[#dbeafe]"
-                        >
-                          Broadcast Live GPS Route Ping (Move Toward Customer)
-                        </button>
-                      )}
+
                     </div>
                   )}
 

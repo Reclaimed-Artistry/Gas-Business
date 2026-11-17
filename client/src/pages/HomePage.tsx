@@ -240,13 +240,13 @@ export function HomePage() {
               <div className="relative rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#06265B] shadow-md">
                 <img
                   src="/images/hero-uyo-delivery.jpg"
-                  alt="BlueFlame verified cooking gas delivery in Uyo, Akwa Ibom residential estate"
+                  alt="Gasflo verified cooking gas delivery in Uyo, Akwa Ibom residential estate"
                   className="w-full h-[320px] sm:h-[400px] object-cover"
                 />
                 <div className="bg-white border-t border-[#E2E8F0] p-4 flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-bold text-[#06265B]">
-                      Dedicated BlueFlame Field Dispatchers
+                      Dedicated Gasflo Field Dispatchers
                     </div>
                     <div className="text-[11px] text-[#64748B]">
                       Sealed digital-scale cylinders · Live route tracking · PIN handover
@@ -516,7 +516,7 @@ export function HomePage() {
       <section className="bg-white border-y border-[#E2E8F0] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-9">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">How BlueFlame Works</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">How Gasflo Works</span>
             <h2 className="text-2xl font-extrabold text-[#06265B] mt-1">
               Engineered for Transparent Pricing & Safe Doorstep Delivery
             </h2>
@@ -534,7 +534,7 @@ export function HomePage() {
                 step: '02',
                 icon: Wallet,
                 title: 'Pay Cashlessly Online',
-                desc: 'Fund your BlueFlame Digital Wallet or pay directly via Paystack or Flutterwave. Every transaction is independently server-verified.',
+                desc: 'Fund your Gasflo Digital Wallet or pay directly via Paystack or Flutterwave. Every transaction is independently server-verified.',
               },
               {
                 step: '03',

@@ -184,9 +184,10 @@ export function CustomerDashboard() {
             o.id === oid
               ? {
                   ...o,
-                  dispatcher_lat: Number(payload.lat),
-                  dispatcher_lng: Number(payload.lng),
+                  dispatcher_lat: payload.lat == null ? null : Number(payload.lat),
+                  dispatcher_lng: payload.lng == null ? null : Number(payload.lng),
                   liveTrackingActive: Boolean(payload.trackingEnabled),
+                  dispatcher_location_updated_at: typeof payload.updatedAt === 'string' ? payload.updatedAt : null,
                 }
               : o
           )
@@ -194,6 +195,16 @@ export function CustomerDashboard() {
       },
     });
   }, [user, loadData]);
+
+  // Serverless instances do not share in-memory events; poll persisted order data as well.
+  useEffect(() => {
+    if (!user) return;
+    const timer = window.setInterval(() => {
+      void apiRequest<{ orders: CustomerOrder[] }>('/api/customer/orders')
+        .then(result => setOrders(result.orders)).catch(() => {});
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [user]);
 
   const showNotice = (msg: string) => {
     setFeedbackMsg(msg);
@@ -475,9 +486,11 @@ export function CustomerDashboard() {
                           lat: activeOrder.dispatcher_lat,
                           lng: activeOrder.dispatcher_lng,
                           active: activeOrder.liveTrackingActive,
+                          updatedAt: activeOrder.dispatcher_location_updated_at,
                         }
                       : null
                   }
+                  status={activeOrder.status}
                   heightClass="h-[260px]"
                 />
 
@@ -762,9 +775,11 @@ export function CustomerDashboard() {
                           lat: selectedOrder.dispatcher_lat,
                           lng: selectedOrder.dispatcher_lng,
                           active: selectedOrder.liveTrackingActive,
+                          updatedAt: selectedOrder.dispatcher_location_updated_at,
                         }
                       : null
                   }
+                  status={selectedOrder.status}
                   heightClass="h-[270px]"
                 />
 

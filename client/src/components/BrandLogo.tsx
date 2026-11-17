@@ -43,7 +43,7 @@ export function BrandLogo({
               inverted ? 'text-white' : 'text-[#06265B]'
             }`}
           >
-            BlueFlame
+            Gasflo
           </div>
           <div
             className={`text-[10.5px] font-medium uppercase tracking-wider ${

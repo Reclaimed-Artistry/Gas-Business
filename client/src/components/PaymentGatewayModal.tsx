@@ -174,7 +174,7 @@ export function PaymentGatewayModal({
                   <div className="bg-white rounded-md p-2.5 border border-[#BFDBFE] font-mono space-y-1">
                     <div>Bank: Wema Bank / {session.provider} Checkout</div>
                     <div>Account No: 9930148205</div>
-                    <div>Account Name: BlueFlame Energy NG</div>
+                    <div>Account Name: Gasflo Energy NG</div>
                   </div>
                 </div>
               )}

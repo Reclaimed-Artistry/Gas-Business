@@ -145,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Supabase handles the PKCE callback during client initialization. Do not let
-  // an existing BlueFlame session redirect away before this exchange completes.
+  // an existing Gasflo session redirect away before this exchange completes.
   useEffect(() => {
     const isCallback = callbackRef.current;
     if (!isCallback) void refreshAuth();

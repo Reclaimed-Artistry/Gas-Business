@@ -58,7 +58,7 @@ export function App() {
                 <Suspense
                   fallback={
                     <div className="py-20 text-center text-sm text-[#64748B]">
-                      Loading BlueFlame portal...
+                      Loading Gasflo portal...
                     </div>
                   }
                 >

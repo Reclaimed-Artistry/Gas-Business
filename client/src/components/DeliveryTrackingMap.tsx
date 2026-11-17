@@ -6,9 +6,10 @@ import { createBaseTileLayer } from '../lib/mapTiles';
 interface DeliveryTrackingMapProps {
   retailer: { name: string; address: string; lat: number; lng: number };
   customer: { address: string; lat: number; lng: number };
-  dispatcher?: { name: string; lat: number | null; lng: number | null; active: boolean } | null;
+  dispatcher?: { name: string; lat: number | null; lng: number | null; active: boolean; updatedAt?: string | null } | null;
   heightClass?: string;
   showExternalNavLinks?: boolean;
+  status?: string;
 }
 
 export function DeliveryTrackingMap({
@@ -104,28 +105,29 @@ export function DeliveryTrackingMap({
 
   return (
     <div className="space-y-2">
+      <p className="text-xs text-slate-600">{dispatcher?.active && dispatcher.lat != null && dispatcher.lng != null ? `Dispatcher last reported${dispatcher.updatedAt ? `: ${dispatcher.updatedAt}` : ''}.` : 'Dispatcher location unavailable or sharing paused.'} Map overview only; dashed lines do not represent driving directions.</p>
       <div className={`relative w-full ${heightClass} rounded-xl overflow-hidden border border-[#E2E8F0]`}>
         <div ref={containerRef} className="w-full h-full" />
       </div>
       {showExternalNavLinks && (
         <div className="flex flex-wrap gap-2">
           <a
-            href={`https://www.google.com/maps/dir/?api=1&destination=${retailer.lat},${retailer.lng}`}
+            href={`https://www.openstreetmap.org/?mlat=${retailer.lat}&mlon=${retailer.lng}#map=17/${retailer.lat}/${retailer.lng}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAF3FF] text-[#073B8C] text-xs font-bold hover:bg-[#dbeafe]"
           >
             <Navigation className="w-3.5 h-3.5" />
-            Navigate to Retailer Pickup
+            Open pickup location
           </a>
           <a
-            href={`https://www.google.com/maps/dir/?api=1&origin=${retailer.lat},${retailer.lng}&destination=${customer.lat},${customer.lng}`}
+            href={`https://www.openstreetmap.org/?mlat=${customer.lat}&mlon=${customer.lng}#map=17/${customer.lat}/${customer.lng}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#073B8C] text-white text-xs font-bold hover:bg-[#06265B]"
           >
             <Navigation className="w-3.5 h-3.5" />
-            Navigate to Customer Drop-off
+            Open drop-off location
           </a>
         </div>
       )}
