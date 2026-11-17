@@ -28,7 +28,7 @@ test('returns the best fix on timeout, ignoring stale and worse readings', async
     queueMicrotask(() => { success(position(1, 0, Date.now() - 60000)); success(position(200)); success(best); success(position(90)); });
     return 7;
   }, clearWatch() { cleared++; } } as unknown as Geolocation;
-  assert.equal(await getDeviceLocation(geo, { waitMs: 20, targetAccuracyMeters: 20 }), best);
+  assert.equal(await getDeviceLocation(geo, { waitMs: 20, improveMs: 20, permissionWaitMs: 100, targetAccuracyMeters: 20 }), best);
   assert.equal(cleared, 1);
 });
 
@@ -45,7 +45,7 @@ test('permission denial rejects and clears watch', async () => {
 test('timeout without a fix rejects and clears watch', async () => {
   let cleared = 0;
   const geo = { watchPosition() { return 1; }, clearWatch() { cleared++; } } as unknown as Geolocation;
-  await assert.rejects(getDeviceLocation(geo, { waitMs: 10 }), (err: { code: number }) => err.code === 3);
+  await assert.rejects(getDeviceLocation(geo, { waitMs: 10, permissionWaitMs: 10 }), (err: { code: number }) => err.code === 3);
   assert.equal(cleared, 1);
 });
 
@@ -54,4 +54,23 @@ test('a distant pin is not mislabelled as a Uyo address', () => {
   assert.equal(pin.city, 'Unknown city');
   assert.equal(pin.lat, 6.5243793);
   assert.equal(pin.lng, 3.3792057);
+});
+
+
+test('does not time out while the user is considering the permission prompt', async () => {
+  const fix = position(12);
+  let cleared = 0;
+  const geo = { watchPosition(success: PositionCallback) {
+    setTimeout(() => success(fix), 35); return 9;
+  }, clearWatch() { cleared++; } } as unknown as Geolocation;
+  assert.equal(await getDeviceLocation(geo, { waitMs: 10, permissionWaitMs: 100 }), fix);
+  assert.equal(cleared, 1);
+});
+
+test('browser timeout returns a coarse fix instead of failing', async () => {
+  const fix = position(250);
+  const geo = { watchPosition(success: PositionCallback, error: PositionErrorCallback) {
+    queueMicrotask(() => { success(fix); error({ code: 3 } as GeolocationPositionError); }); return 1;
+  }, clearWatch() {} } as unknown as Geolocation;
+  assert.equal(await getDeviceLocation(geo, { waitMs: 20, permissionWaitMs: 100 }), fix);
 });
