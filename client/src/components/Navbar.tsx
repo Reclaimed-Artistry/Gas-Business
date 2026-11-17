@@ -29,6 +29,7 @@ export function Navbar() {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [gpsStatus, setGpsStatus] = useState('');
   const [locMenuOpen, setLocMenuOpen] = useState(false);
 
   const dashboardPath =
@@ -82,8 +83,9 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={async () => {
-                      await detectGpsLocation();
-                      setLocMenuOpen(false);
+                      const result = await detectGpsLocation();
+                      setGpsStatus(result.message);
+                      if (result.ok) setLocMenuOpen(false);
                     }}
                     disabled={locating}
                     className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-[#073B8C] bg-[#EAF3FF] hover:bg-[#dbeafe] mb-1.5 transition-colors"
@@ -91,6 +93,7 @@ export function Navbar() {
                     <LocateFixed className="w-3.5 h-3.5" />
                     {locating ? 'Detecting GPS...' : 'Use My Current GPS Location'}
                   </button>
+                  {gpsStatus && <p role="status" className="px-2 py-2 text-xs text-[#B45309]">{gpsStatus}</p>}
                   <div className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] px-2 py-1">
                     Active Service Areas (Uyo, Akwa Ibom)
                   </div>
@@ -235,12 +238,17 @@ export function Navbar() {
               }}
               className="w-full px-3 py-2 text-xs font-semibold rounded-lg border border-[#E2E8F0] bg-[#F7F9FC] text-[#06265B]"
             >
+              {!NIGERIAN_PRESET_LOCATIONS.some((p) => p.label === location.label) && <option value={location.label}>{location.label}</option>}
               {NIGERIAN_PRESET_LOCATIONS.map((p) => (
                 <option key={p.label} value={p.label}>
                   {p.label}
                 </option>
               ))}
             </select>
+            <button type="button" disabled={locating} onClick={() => void detectGpsLocation().then(result => setGpsStatus(result.message))} className="mt-2 text-xs font-bold text-[#073B8C]">
+              {locating ? 'Finding location…' : 'Use my device location'}
+            </button>
+            {gpsStatus && <p role="status" className="mt-2 text-xs text-[#073B8C]">{gpsStatus}</p>}
           </div>
           <Link to="/" onClick={() => setMobileOpen(false)} className="block py-2 text-sm font-semibold text-[#172B4D]">
             Home

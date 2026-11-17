@@ -58,6 +58,7 @@ export function ExplorePage() {
   const { location, setLocation, setCoordinates, detectGpsLocation, locating } = useLocationContext();
 
   const initialView = (searchParams.get('view') as 'map' | 'list' | 'compare') || 'map';
+  const [gpsStatus, setGpsStatus] = useState('');
   const [viewMode, setViewMode] = useState<'map' | 'list' | 'compare'>(initialView);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [sizeKg, setSizeKg] = useState<string>(searchParams.get('sizeKg') || '');
@@ -239,9 +240,9 @@ export function ExplorePage() {
               </div>
               <button
                 type="button"
-                onClick={() => void detectGpsLocation()}
+                onClick={() => void detectGpsLocation().then((result) => setGpsStatus(result.message))}
                 disabled={locating}
-                title="Use GPS Location"
+                title="Use device location" aria-label="Use device location"
                 className="px-2.5 py-2 rounded-lg bg-[#EAF3FF] text-[#073B8C] hover:bg-[#dbeafe]"
               >
                 <LocateFixed className="w-4 h-4" />
@@ -383,6 +384,8 @@ export function ExplorePage() {
           )}
         </div>
       </div>
+
+      {gpsStatus && <p role="status" className="text-xs text-[#073B8C] mb-3">{gpsStatus}</p>}
 
       {/* VIEW 1: INTERACTIVE MAP + SIDE LIST */}
       {viewMode === 'map' && (

@@ -112,11 +112,20 @@ export function matchNearestPreset(lat: number, lng: number): DeliveryLocation {
       best = loc;
     }
   }
+  // A nearby preset is only an approximate area, not reverse geocoding.
+  // Do not label distant locations as Uyo (or any other preset city).
+  if (bestDist > 0.1) {
+    return {
+      label: 'Selected location (outside mapped areas)',
+      addressLine: `Map pin (${lat.toFixed(6)}, ${lng.toFixed(6)})`,
+      neighbourhood: 'Unknown area', city: 'Unknown city', state: 'Unknown state', lat, lng,
+    };
+  }
   return {
     ...best,
-    lat: Math.round(lat * 10000) / 10000,
-    lng: Math.round(lng * 10000) / 10000,
+    lat,
+    lng,
     label: `Pinned near ${best.neighbourhood}, ${best.city}`,
-    addressLine: `Map Pin (${lat.toFixed(4)}, ${lng.toFixed(4)}) near ${best.neighbourhood}`,
+    addressLine: `Map Pin (${lat.toFixed(6)}, ${lng.toFixed(6)}) near ${best.neighbourhood}`,
   };
 }

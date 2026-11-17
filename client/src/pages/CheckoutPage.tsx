@@ -38,7 +38,8 @@ interface SavedAddress {
 export function CheckoutPage() {
   const { items, retailerId, retailerName, subtotalKobo, updateQuantity, removeItem, clearCart } = useCart();
   const { user, walletBalanceKobo, setWalletBalanceKobo, refreshAuth } = useAuth();
-  const { location, setLocation } = useLocationContext();
+  const { location, setLocation, detectGpsLocation, locating } = useLocationContext();
+  const [gpsStatus, setGpsStatus] = useState('');
   const navigate = useNavigate();
 
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
@@ -312,6 +313,16 @@ export function CheckoutPage() {
               <MapPin className="w-4 h-4 text-[#073B8C]" />
               Delivery Location & Coverage Verification
             </h2>
+
+            <div className="rounded-lg bg-[#EAF3FF] p-3 text-xs space-y-2">
+              <button type="button" disabled={locating} onClick={() => void detectGpsLocation().then(result => setGpsStatus(result.message))} className="font-bold text-[#073B8C] disabled:opacity-50">
+                {locating ? 'Finding your location…' : 'Use my device location'}
+              </button>
+              <span> · </span><Link to="/explore?view=map" className="font-bold text-[#073B8C] underline">Adjust pin on map</Link>
+              <p>Location is saved on this device. Verify the pin and enter your street address; GPS accuracy varies.</p>
+              {gpsStatus && <p role="status">{gpsStatus}</p>}
+              {location.source === 'gps' && Number.isFinite(location.accuracyMeters) && <p>Estimated accuracy: ±{Math.ceil(location.accuracyMeters!)} m</p>}
+            </div>
 
             {savedAddresses.length > 0 && (
               <div className="space-y-1.5">

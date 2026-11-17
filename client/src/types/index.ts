@@ -38,6 +38,9 @@ export interface DeliveryLocation {
   lat: number;
   lng: number;
   deliveryInstructions?: string;
+  source?: 'gps' | 'map';
+  accuracyMeters?: number;
+  capturedAt?: number;
 }
 
 export interface RetailerCoverage {

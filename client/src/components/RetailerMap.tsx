@@ -31,6 +31,7 @@ export function RetailerMap({
 }: RetailerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const lastLocationRef = useRef({ lat: customerLocation.lat, lng: customerLocation.lng });
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const customerLayerRef = useRef<L.LayerGroup | null>(null);
   const coverageLayerRef = useRef<L.LayerGroup | null>(null);
@@ -81,16 +82,14 @@ export function RetailerMap({
     };
   }, []);
 
-  // Recenter smoothly when customer location changes significantly
+  // Recenter on every new selection, even when the new fix is nearby.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    const current = map.getCenter();
-    const dist = Math.hypot(current.lat - customerLocation.lat, current.lng - customerLocation.lng);
-    if (dist > 0.015) {
-      map.setView([customerLocation.lat, customerLocation.lng], 12, { animate: true });
-    }
-  }, [customerLocation.lat, customerLocation.lng]);
+    const last = lastLocationRef.current;
+    if (!map || (last.lat === customerLocation.lat && last.lng === customerLocation.lng)) return;
+    lastLocationRef.current = { lat: customerLocation.lat, lng: customerLocation.lng };
+    map.setView([customerLocation.lat, customerLocation.lng], customerLocation.source === 'gps' ? 16 : Math.max(map.getZoom(), 14), { animate: true });
+  }, [customerLocation.lat, customerLocation.lng, customerLocation.source]);
 
   // Render customer delivery location pin
   useEffect(() => {
@@ -109,14 +108,25 @@ export function RetailerMap({
       iconAnchor: [15, 15],
     });
 
+    if (customerLocation.source === 'gps' && Number.isFinite(customerLocation.accuracyMeters) && customerLocation.accuracyMeters! > 0) {
+      L.circle([customerLocation.lat, customerLocation.lng], {
+        radius: customerLocation.accuracyMeters, color: '#16834A', weight: 1, fillOpacity: 0.12,
+      }).addTo(layer);
+    }
+    const popup = document.createElement('div');
+    popup.style.cssText = 'padding:12px;font-size:12px;';
+    const title = document.createElement('strong');
+    title.textContent = 'Selected delivery location';
+    const detail = document.createElement('div');
+    detail.textContent = customerLocation.addressLine;
+    popup.append(title, detail);
+    if (customerLocation.source === 'gps' && Number.isFinite(customerLocation.accuracyMeters)) {
+      const accuracy = document.createElement('div');
+      accuracy.textContent = `Estimated accuracy: ±${Math.ceil(customerLocation.accuracyMeters!)} m`;
+      popup.append(accuracy);
+    }
     L.marker([customerLocation.lat, customerLocation.lng], { icon: customerIcon, zIndexOffset: 1000 })
-      .bindPopup(
-        `<div style="padding:12px;font-size:12px;">
-          <div style="font-weight:700;color:#16834A;text-transform:uppercase;font-size:10px;letter-spacing:0.05em;">Selected Delivery Location</div>
-          <div style="font-weight:700;color:#06265B;margin-top:2px;">${customerLocation.label}</div>
-          <div style="color:#64748B;margin-top:2px;">${customerLocation.addressLine}</div>
-        </div>`
-      )
+      .bindPopup(popup)
       .addTo(layer);
   }, [customerLocation]);
 
