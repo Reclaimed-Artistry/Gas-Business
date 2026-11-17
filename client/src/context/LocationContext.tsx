@@ -75,7 +75,9 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         label: 'Device location',
         addressLine: `Device location (${latitude.toFixed(6)}, ${longitude.toFixed(6)})`,
       });
-      return { ok: true, message: `Device location updated (estimated accuracy ±${distance} m). Check the pin and enter your street address.` };
+      return { ok: true, message: accuracy > 50
+        ? `Approximate location only (estimated accuracy ±${distance} m). Enable precise location, move outdoors and try again, or adjust the pin on the map.`
+        : `Device location updated (estimated accuracy ±${distance} m). Check the pin and enter your street address.` };
     } catch (error) {
       return { ok: false, message: locationErrorMessage(error) };
     } finally {
