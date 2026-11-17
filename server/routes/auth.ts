@@ -1,3 +1,4 @@
+import { isDisabledDemoAccount } from '../middleware/auth.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import crypto from 'node:crypto';
@@ -121,7 +122,7 @@ router.post(
       parsed.data.email.trim().toLowerCase()
     );
 
-    if (!user || !verifyPassword(parsed.data.password, user.password_hash)) {
+    if (!user || isDisabledDemoAccount(user.email) || !verifyPassword(parsed.data.password, user.password_hash)) {
       res.status(401).json({ error: 'Invalid email address or password.' });
       return;
     }

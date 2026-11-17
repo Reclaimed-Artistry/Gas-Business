@@ -4,11 +4,26 @@ import bcrypt from 'bcryptjs';
 import { getDb } from '../db/database.js';
 import type { UserRole } from '../services/events.js';
 
+if ((process.env.NODE_ENV === 'production' || process.env.VERCEL) && !process.env.JWT_SECRET && !process.env.BLUEFLAME_JWT_SECRET) {
+  throw new Error('A JWT secret is required in production.');
+}
+
 const JWT_SECRET =
   process.env.JWT_SECRET ||
   process.env.BLUEFLAME_JWT_SECRET ||
   'blueflame-ng-production-secret-key-2026-change-in-env';
 const COOKIE_NAME = 'blueflame_session';
+
+// Publicly documented seed credentials must never provide production access,
+// including through already-issued tokens or another authentication method.
+export function isDisabledDemoAccount(email: string): boolean {
+  return new Set([
+    'admin@blueflame.ng', 'ubong.dispatch@blueflame.ng',
+    'idara.dispatch@blueflame.ng', 'anietie.dispatch@blueflame.ng',
+    'edidiong.udoh@example.com', 'nsikak.akpan@example.com', 'imaobong.bassey@example.com',
+  ]).has(email.toLowerCase());
+}
+
 
 export interface AuthUser {
   id: number;
@@ -85,7 +100,7 @@ export function attachOptionalUser(req: Request, _res: Response, next: NextFunct
         'SELECT id, role, full_name, email, phone, status, avatar_url FROM users WHERE id = ?',
         decoded.sub
       );
-      if (user && user.status === 'ACTIVE') {
+      if (user && user.status === 'ACTIVE' && !isDisabledDemoAccount(user.email)) {
         req.user = user;
       }
     } catch {
@@ -113,7 +128,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
         res.status(401).json({ error: 'Session account no longer exists.' });
         return;
       }
-      if (user.status !== 'ACTIVE') {
+      if (user.status !== 'ACTIVE' || isDisabledDemoAccount(user.email)) {
         res.status(403).json({ error: 'Your account has been suspended or deactivated. Contact support.' });
         return;
       }

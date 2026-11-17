@@ -426,7 +426,7 @@ export function CheckoutPage() {
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-bold text-[#06265B] inline-flex items-center gap-2">
                 <Lock className="w-4 h-4 text-[#073B8C]" />
-                Electronic Payment Method (Strict Cashless)
+                Payment temporarily unavailable
               </h2>
               <span className="px-2 py-0.5 rounded bg-[#EAF3FF] text-[#073B8C] text-[10px] font-bold">
                 NO CASH ON DELIVERY
@@ -459,7 +459,8 @@ export function CheckoutPage() {
               {/* Option B: Direct Online Payment */}
               <button
                 type="button"
-                onClick={() => setPaymentMethod('DIRECT_ONLINE')}
+                disabled
+                title="Online payments are not available yet"
                 className={`p-4 rounded-xl border text-left transition-colors ${
                   paymentMethod === 'DIRECT_ONLINE'
                     ? 'border-[#073B8C] bg-[#EAF3FF]/60 ring-1 ring-[#073B8C]'
@@ -471,7 +472,7 @@ export function CheckoutPage() {
                   <span className="text-[10px] font-bold uppercase text-[#1769C2]">Option B</span>
                 </div>
                 <div className="text-sm font-bold text-[#06265B] mt-2">Direct Online Payment</div>
-                <div className="text-xs text-[#64748B] mt-0.5">Paystack or Flutterwave (Card, Transfer, USSD)</div>
+                <div className="text-xs text-[#64748B] mt-0.5">Unavailable until a real payment gateway is connected</div>
               </button>
             </div>
 
@@ -482,11 +483,12 @@ export function CheckoutPage() {
                   {formatNaira(totalAmountKobo)})
                 </div>
                 <p className="text-[#92400E]">
-                  Top up your wallet electronically right now, or switch to Direct Online Payment.
+                  Wallet funding and ordering are temporarily unavailable while payments are being set up. Please do not send money.
                 </p>
                 <button
                   type="button"
-                  onClick={() => void handleInlineFundWallet()}
+                  disabled
+                  title="Wallet funding is unavailable"
                   className="px-3.5 py-1.5 rounded-lg bg-[#073B8C] text-white font-bold hover:bg-[#06265B]"
                 >
                   Fund Wallet via {gatewayProvider} Now
@@ -597,7 +599,8 @@ export function CheckoutPage() {
                 {shortfallKobo !== null && (
                   <button
                     type="button"
-                    onClick={() => void handleInlineFundWallet()}
+                    disabled
+                  title="Wallet funding is unavailable"
                     className="px-3 py-1.5 rounded-md bg-[#073B8C] text-white font-bold text-xs"
                   >
                     Fund Wallet Now (+{formatNaira(shortfallKobo)})
@@ -608,12 +611,12 @@ export function CheckoutPage() {
 
             <button
               type="button"
-              disabled={submitting || !coverage?.canDeliver}
+              disabled
               onClick={() => void handlePlaceOrder()}
               className="w-full py-3 px-4 rounded-lg bg-[#073B8C] hover:bg-[#06265B] text-white text-sm font-extrabold transition-colors disabled:opacity-50"
             >
-              {!user
-                ? 'Sign In to Pay & Confirm Order'
+              {true
+                ? 'Ordering temporarily unavailable'
                 : submitting
                   ? 'Processing Secure Order...'
                   : paymentMethod === 'WALLET'

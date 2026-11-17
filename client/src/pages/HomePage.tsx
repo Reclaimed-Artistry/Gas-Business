@@ -534,7 +534,7 @@ export function HomePage() {
                 step: '02',
                 icon: Wallet,
                 title: 'Pay Cashlessly Online',
-                desc: 'Fund your Gasflo Digital Wallet or pay directly via Paystack or Flutterwave. Every transaction is independently server-verified.',
+                desc: 'Online payments and ordering are temporarily unavailable while payment processing is being set up.',
               },
               {
                 step: '03',

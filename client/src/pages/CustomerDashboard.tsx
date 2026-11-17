@@ -907,7 +907,8 @@ export function CustomerDashboard() {
             </div>
 
             <form onSubmit={handleInitWalletFunding} className="space-y-3.5">
-              <h3 className="text-sm font-bold text-[#06265B]">Fund Wallet Electronically</h3>
+              <h3 className="text-sm font-bold text-[#06265B]">Wallet funding temporarily unavailable</h3>
+              <p className="text-xs text-red-700">Online payments are not yet set up. Please do not send money or enter card details.</p>
               <div>
                 <label className="block text-xs font-semibold text-[#172B4D] mb-1">Amount (₦ NGN)</label>
                 <input
@@ -961,7 +962,7 @@ export function CustomerDashboard() {
               </div>
 
               <button
-                type="submit"
+                type="submit" disabled
                 className="w-full py-2.5 rounded-lg bg-[#073B8C] hover:bg-[#06265B] text-white text-xs font-extrabold inline-flex items-center justify-center gap-2"
               >
                 <CreditCard className="w-4 h-4" />
@@ -1219,7 +1220,7 @@ export function CustomerDashboard() {
                 />
               </div>
               <button
-                type="submit"
+                type="submit" disabled
                 className="w-full py-2.5 rounded-lg bg-[#073B8C] hover:bg-[#06265B] text-white text-xs font-bold"
               >
                 Submit Support Ticket
@@ -1355,7 +1356,7 @@ export function CustomerDashboard() {
                 />
               </div>
               <button
-                type="submit"
+                type="submit" disabled
                 className="w-full py-2.5 rounded-lg bg-[#073B8C] text-white font-bold hover:bg-[#06265B]"
               >
                 Submit Verified Review
