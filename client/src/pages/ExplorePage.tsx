@@ -274,7 +274,7 @@ export function ExplorePage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="e.g. Lekki, Ikeja, 12.5kg, regulator..."
+                placeholder="e.g. Ewet Housing, Oron Rd, 12.5kg, regulator..."
                 className="w-full pl-8 pr-3 py-2 text-xs border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#073B8C]"
               />
             </div>
@@ -325,9 +325,8 @@ export function ExplorePage() {
             onChange={(e) => setStateFilter(e.target.value)}
             className="px-2.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#F7F9FC] text-xs font-semibold text-[#172B4D]"
           >
-            <option value="ALL">All States (Nigeria)</option>
-            <option value="Lagos">Lagos State</option>
-            <option value="FCT Abuja">FCT Abuja</option>
+            <option value="ALL">All Active Regions (Uyo Focus)</option>
+            <option value="Akwa Ibom">Akwa Ibom State (Uyo)</option>
           </select>
 
           <select
@@ -510,7 +509,7 @@ export function ExplorePage() {
             <div key={r.id} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex flex-col">
               <div className="relative h-40 bg-[#06265B]">
                 <img
-                  src={r.cover_image_url || '/images/retailer-depot.jpg'}
+                  src={r.cover_image_url || '/images/depot-ewet.jpg'}
                   alt={r.business_name}
                   className="w-full h-full object-cover"
                 />

@@ -127,16 +127,16 @@ export function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#EAF3FF] border border-[#BFDBFE] text-[#073B8C] text-xs font-bold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Verified LPG Retailers · Centrally Managed Pricing · Strictly Cashless
+                Live Across Uyo, Akwa Ibom · Verified LPG Depots · Strictly Cashless
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#06265B] leading-[1.15]">
-                {data?.cms?.heroTitle || 'Compare Nearby Cooking Gas Prices. Order & Track Fast Delivery.'}
+                {data?.cms?.heroTitle || 'Fast, Verified Cooking Gas Delivery Across Uyo, Akwa Ibom.'}
               </h1>
 
               <p className="text-sm sm:text-base text-[#64748B] leading-relaxed max-w-2xl">
                 {data?.cms?.heroSubtitle ||
-                  'Discover vetted cooking gas retailers near your address, compare transparent refill prices and delivery charges, pay electronically via wallet or online gateway, and track your dispatcher live.'}
+                  'Compare transparent cooking gas refill prices from vetted Uyo depots around Ewet Housing, Oron Road, Shelter Afrique, Ikot Ekpene Road, Abak Road & Nwaniba. Pay cashlessly and track your dispatcher live — ready to expand across Akwa Ibom.'}
               </p>
 
               {/* Prominent Location Selector & Search Bar */}
@@ -224,9 +224,9 @@ export function HomePage() {
                 </div>
                 <div className="bg-white border border-[#E2E8F0] rounded-lg p-3">
                   <div className="text-xl font-extrabold text-[#073B8C] tabular-nums">
-                    ~{data?.stats?.avgDeliveryMins ?? 32} min
+                    ~{data?.stats?.avgDeliveryMins ?? 26} min
                   </div>
-                  <div className="text-xs text-[#64748B] font-medium mt-0.5">Avg. Urban Delivery</div>
+                  <div className="text-xs text-[#64748B] font-medium mt-0.5">Avg. Uyo Delivery</div>
                 </div>
                 <div className="bg-white border border-[#E2E8F0] rounded-lg p-3">
                   <div className="text-xl font-extrabold text-[#16834A] tabular-nums">100%</div>
@@ -239,8 +239,8 @@ export function HomePage() {
             <div className="lg:col-span-5">
               <div className="relative rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#06265B] shadow-md">
                 <img
-                  src="/images/hero-lpg-delivery.jpg"
-                  alt="BlueFlame verified cooking gas delivery in Lagos residential estate"
+                  src="/images/hero-uyo-delivery.jpg"
+                  alt="BlueFlame verified cooking gas delivery in Uyo, Akwa Ibom residential estate"
                   className="w-full h-[320px] sm:h-[400px] object-cover"
                 />
                 <div className="bg-white border-t border-[#E2E8F0] p-4 flex items-center justify-between gap-3">
@@ -405,11 +405,11 @@ export function HomePage() {
                   }
                   className="group bg-[#F7F9FC] border border-[#E2E8F0] hover:border-[#1769C2] rounded-xl overflow-hidden transition-colors flex flex-col"
                 >
-                  <div className="h-36 bg-white flex items-center justify-center p-3 border-b border-[#E2E8F0] overflow-hidden">
+                  <div className="h-40 bg-white flex items-center justify-center border-b border-[#E2E8F0] overflow-hidden">
                     <img
                       src={prod.image_url}
                       alt={prod.name}
-                      className="h-full w-full object-contain group-hover:scale-[1.03] transition-transform"
+                      className="h-full w-full object-cover group-hover:scale-[1.04] transition-transform duration-300"
                     />
                   </div>
                   <div className="p-3.5 flex-1 flex flex-col justify-between">
@@ -454,7 +454,7 @@ export function HomePage() {
             >
               <div className="relative h-36 bg-[#06265B]">
                 <img
-                  src={r.cover_image_url || '/images/retailer-depot.jpg'}
+                  src={r.cover_image_url || '/images/depot-ewet.jpg'}
                   alt={r.business_name}
                   className="w-full h-full object-cover"
                 />
@@ -569,7 +569,7 @@ export function HomePage() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="mb-6">
             <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">Verified Customers</span>
-            <h2 className="text-2xl font-extrabold text-[#06265B] mt-1">Trusted Across Nigerian Households</h2>
+            <h2 className="text-2xl font-extrabold text-[#06265B] mt-1">Trusted Across Uyo Households</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {data.cms.testimonials.map((t, idx) => (
@@ -633,7 +633,7 @@ export function HomePage() {
               </span>
               <h3 className="text-xl font-extrabold">Need Help With an Order or Delivery?</h3>
               <p className="text-xs text-[#EAF3FF]/85 leading-relaxed">
-                Our Nigerian operations support desk monitors every active dispatch and payment ledger. Reach us
+                Our Uyo, Akwa Ibom operations support desk monitors every active dispatch and payment ledger. Reach us
                 directly or submit a tracked support ticket inside your Customer Dashboard.
               </p>
               <div className="space-y-2.5 pt-1 text-xs">

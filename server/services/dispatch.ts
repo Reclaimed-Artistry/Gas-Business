@@ -40,51 +40,31 @@ export interface DispatcherCandidate {
   recommendationReason: string;
 }
 
-/**
- * Automatic Dispatcher Recommendation Engine:
- * Scores active dispatchers by availability, proximity to retailer, proximity to customer,
- * current workload, estimated travel distance, and rating.
- */
-export function rankDispatchersForOrder(orderId: number): DispatcherCandidate[] {
+export async function rankDispatchersForOrder(orderId: number): Promise<DispatcherCandidate[]> {
   const db = getDb();
-  const order = db
-    .prepare(`
-      SELECT o.id, o.delivery_lat, o.delivery_lng, o.distance_km,
-             r.lat as retailer_lat, r.lng as retailer_lng
-      FROM orders o
-      JOIN retailers r ON r.id = o.retailer_id
-      WHERE o.id = ?
-    `)
-    .get(orderId) as
-    | {
-        id: number;
-        delivery_lat: number;
-        delivery_lng: number;
-        distance_km: number;
-        retailer_lat: number;
-        retailer_lng: number;
-      }
-    | undefined;
+  const order = await db.get<{
+    id: number;
+    delivery_lat: number;
+    delivery_lng: number;
+    distance_km: number;
+    retailer_lat: number;
+    retailer_lng: number;
+  }>(
+    `
+    SELECT o.id, o.delivery_lat, o.delivery_lng, o.distance_km,
+           r.lat as retailer_lat, r.lng as retailer_lng
+    FROM orders o
+    JOIN retailers r ON r.id = o.retailer_id
+    WHERE o.id = ?
+  `,
+    orderId
+  );
 
   if (!order) {
     throw new Error('Order not found.');
   }
 
-  const dispatchers = db
-    .prepare(`
-      SELECT u.id as user_id, u.full_name, u.phone,
-             dp.vehicle_type, dp.plate_number, dp.zone, dp.availability_status,
-             dp.current_lat, dp.current_lng, dp.rating_avg, dp.completed_deliveries_count,
-             (
-               SELECT COUNT(*) FROM orders ao
-               WHERE ao.dispatcher_id = u.id
-                 AND ao.status IN ('ASSIGNED_TO_DISPATCHER', 'ACCEPTED_BY_DISPATCHER', 'AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER', 'IN_TRANSIT')
-             ) as active_jobs_count
-      FROM users u
-      JOIN dispatcher_profiles dp ON dp.user_id = u.id
-      WHERE u.role = 'DISPATCHER' AND u.status = 'ACTIVE'
-    `)
-    .all() as {
+  const dispatchers = await db.all<{
     user_id: number;
     full_name: string;
     phone: string;
@@ -97,38 +77,53 @@ export function rankDispatchersForOrder(orderId: number): DispatcherCandidate[] 
     rating_avg: number;
     completed_deliveries_count: number;
     active_jobs_count: number;
-  }[];
+  }>(
+    `
+    SELECT u.id as user_id, u.full_name, u.phone,
+           dp.vehicle_type, dp.plate_number, dp.zone, dp.availability_status,
+           dp.current_lat, dp.current_lng, dp.rating_avg, dp.completed_deliveries_count,
+           (
+             SELECT COUNT(*) FROM orders ao
+             WHERE ao.dispatcher_id = u.id
+               AND ao.status IN ('ASSIGNED_TO_DISPATCHER', 'ACCEPTED_BY_DISPATCHER', 'AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER', 'IN_TRANSIT')
+           ) as active_jobs_count
+    FROM users u
+    JOIN dispatcher_profiles dp ON dp.user_id = u.id
+    WHERE u.role = 'DISPATCHER' AND u.status = 'ACTIVE'
+  `
+  );
 
   const leg2Km = haversineDistanceKm(
-    { lat: order.retailer_lat, lng: order.retailer_lng },
-    { lat: order.delivery_lat, lng: order.delivery_lng }
+    { lat: Number(order.retailer_lat), lng: Number(order.retailer_lng) },
+    { lat: Number(order.delivery_lat), lng: Number(order.delivery_lng) }
   );
 
   const candidates: DispatcherCandidate[] = dispatchers.map((d) => {
     const leg1Km = haversineDistanceKm(
-      { lat: d.current_lat, lng: d.current_lng },
-      { lat: order.retailer_lat, lng: order.retailer_lng }
+      { lat: Number(d.current_lat), lng: Number(d.current_lng) },
+      { lat: Number(order.retailer_lat), lng: Number(order.retailer_lng) }
     );
     const totalRoute = Math.round((leg1Km + leg2Km) * 100) / 100;
+    const activeJobs = Number(d.active_jobs_count);
+    const ratingAvg = Number(d.rating_avg);
 
-    // Higher score is better (max ~100)
     let score = 100;
     if (d.availability_status === 'ONLINE') score += 20;
     else if (d.availability_status === 'BUSY') score -= 15;
-    else score -= 50; // OFFLINE
+    else score -= 50;
 
-    score -= leg1Km * 3.5; // proximity to retailer
-    score -= d.active_jobs_count * 18; // workload penalty
-    score += (d.rating_avg - 4.0) * 8; // reliability bonus
+    score -= leg1Km * 3.5;
+    score -= activeJobs * 18;
+    score += (ratingAvg - 4.0) * 8;
 
     const reasons: string[] = [];
     if (d.availability_status === 'ONLINE') reasons.push('Online & ready');
     else reasons.push(`Currently ${d.availability_status.toLowerCase()}`);
     reasons.push(`${leg1Km.toFixed(1)} km from retailer`);
-    reasons.push(`${d.active_jobs_count} active job${d.active_jobs_count === 1 ? '' : 's'}`);
+    reasons.push(`${activeJobs} active job${activeJobs === 1 ? '' : 's'}`);
 
     return {
-      dispatcherId: d.user_id,
+      dispatcherId: Number(d.user_id),
       fullName: d.full_name,
       phone: d.phone,
       vehicleType: d.vehicle_type,
@@ -138,9 +133,9 @@ export function rankDispatchersForOrder(orderId: number): DispatcherCandidate[] 
       distanceToRetailerKm: leg1Km,
       distanceRetailerToCustomerKm: leg2Km,
       totalEstimatedRouteKm: totalRoute,
-      activeJobsCount: d.active_jobs_count,
-      ratingAvg: d.rating_avg,
-      completedDeliveriesCount: d.completed_deliveries_count,
+      activeJobsCount: activeJobs,
+      ratingAvg,
+      completedDeliveriesCount: Number(d.completed_deliveries_count),
       score: Math.round(score * 10) / 10,
       recommendationReason: reasons.join(' · '),
     };
@@ -150,37 +145,33 @@ export function rankDispatchersForOrder(orderId: number): DispatcherCandidate[] 
   return candidates;
 }
 
-/**
- * Assign or reassign a dispatcher to an eligible paid order (Admin only).
- */
-export function assignDispatcherToOrder(params: {
+export async function assignDispatcherToOrder(params: {
   orderId: number;
   dispatcherId: number;
   adminUserId: number;
   isAutoAssigned?: boolean;
   note?: string;
-}): { orderReference: string; dispatcherName: string } {
-  const result = runInTransaction((db) => {
-    const order = db
-      .prepare(`
-        SELECT o.*, r.business_name as retailer_name, r.address as retailer_address
-        FROM orders o
-        JOIN retailers r ON r.id = o.retailer_id
-        WHERE o.id = ?
-      `)
-      .get(params.orderId) as
-      | {
-          id: number;
-          order_reference: string;
-          customer_id: number;
-          dispatcher_id: number | null;
-          status: string;
-          payment_status: string;
-          retailer_name: string;
-          retailer_address: string;
-          delivery_address: string;
-        }
-      | undefined;
+}): Promise<{ orderReference: string; dispatcherName: string }> {
+  const result = await runInTransaction(async (db) => {
+    const order = await db.get<{
+      id: number;
+      order_reference: string;
+      customer_id: number;
+      dispatcher_id: number | null;
+      status: string;
+      payment_status: string;
+      retailer_name: string;
+      retailer_address: string;
+      delivery_address: string;
+    }>(
+      `
+      SELECT o.*, r.business_name as retailer_name, r.address as retailer_address
+      FROM orders o
+      JOIN retailers r ON r.id = o.retailer_id
+      WHERE o.id = ?
+    `,
+      params.orderId
+    );
 
     if (!order) throw new Error('Order not found.');
     if (order.payment_status !== 'PAID') {
@@ -190,17 +181,19 @@ export function assignDispatcherToOrder(params: {
       throw new Error(`Cannot assign dispatcher to an order in status ${order.status}.`);
     }
 
-    const dispatcher = db
-      .prepare("SELECT id, full_name, status FROM users WHERE id = ? AND role = 'DISPATCHER'")
-      .get(params.dispatcherId) as { id: number; full_name: string; status: string } | undefined;
+    const dispatcher = await db.get<{ id: number; full_name: string; status: string }>(
+      "SELECT id, full_name, status FROM users WHERE id = ? AND role = 'DISPATCHER'",
+      params.dispatcherId
+    );
     if (!dispatcher || dispatcher.status !== 'ACTIVE') {
       throw new Error('Selected dispatcher is not active.');
     }
 
-    const previousDispatcherId = order.dispatcher_id;
-    const isReassignment = Boolean(previousDispatcherId && previousDispatcherId !== dispatcher.id);
+    const previousDispatcherId = order.dispatcher_id ? Number(order.dispatcher_id) : null;
+    const isReassignment = Boolean(previousDispatcherId && previousDispatcherId !== Number(dispatcher.id));
 
-    db.prepare(`
+    await db.run(
+      `
       UPDATE orders
       SET dispatcher_id = ?,
           status = 'ASSIGNED_TO_DISPATCHER',
@@ -209,12 +202,16 @@ export function assignDispatcherToOrder(params: {
           failure_notes = '',
           updated_at = datetime('now')
       WHERE id = ?
-    `).run(dispatcher.id, order.id);
+    `,
+      dispatcher.id,
+      order.id
+    );
 
-    db.prepare(`
+    await db.run(
+      `
       INSERT INTO order_status_history (order_id, from_status, to_status, changed_by_user_id, changed_by_role, note)
       VALUES (?, ?, 'ASSIGNED_TO_DISPATCHER', ?, 'ADMIN', ?)
-    `).run(
+    `,
       order.id,
       order.status,
       params.adminUserId,
@@ -224,9 +221,9 @@ export function assignDispatcherToOrder(params: {
 
     return {
       orderReference: order.order_reference,
-      customerId: order.customer_id,
+      customerId: Number(order.customer_id),
       previousDispatcherId,
-      dispatcherId: dispatcher.id,
+      dispatcherId: Number(dispatcher.id),
       dispatcherName: dispatcher.full_name,
       retailerName: order.retailer_name,
       retailerAddress: order.retailer_address,
@@ -235,7 +232,7 @@ export function assignDispatcherToOrder(params: {
     };
   });
 
-  createNotification({
+  await createNotification({
     userId: result.dispatcherId,
     roleScope: 'DISPATCHER',
     title: result.isReassignment ? 'Reassigned Delivery Job' : 'New Delivery Assignment',
@@ -246,7 +243,7 @@ export function assignDispatcherToOrder(params: {
   });
 
   if (result.previousDispatcherId && result.previousDispatcherId !== result.dispatcherId) {
-    createNotification({
+    await createNotification({
       userId: result.previousDispatcherId,
       roleScope: 'DISPATCHER',
       title: 'Order Reassigned',
@@ -257,7 +254,7 @@ export function assignDispatcherToOrder(params: {
     });
   }
 
-  createNotification({
+  await createNotification({
     userId: result.customerId,
     roleScope: 'CUSTOMER',
     title: 'Dispatcher Assigned to Your Order',
@@ -275,11 +272,7 @@ export function assignDispatcherToOrder(params: {
   };
 }
 
-/**
- * Enforces the 8-stage Dispatcher Delivery Workflow:
- * ASSIGNED_TO_DISPATCHER -> ACCEPTED_BY_DISPATCHER -> AWAITING_COLLECTION -> COLLECTED_FROM_RETAILER -> IN_TRANSIT -> DELIVERED
- */
-export function advanceDispatcherOrderStatus(params: {
+export async function advanceDispatcherOrderStatus(params: {
   orderId: number;
   dispatcherId: number;
   nextStatus:
@@ -291,7 +284,7 @@ export function advanceDispatcherOrderStatus(params: {
   note?: string;
   confirmationCode?: string;
   proofOfDeliveryNote?: string;
-}): { orderReference: string; status: string } {
+}): Promise<{ orderReference: string; status: string }> {
   const allowedNext: Record<string, string[]> = {
     ASSIGNED_TO_DISPATCHER: ['ACCEPTED_BY_DISPATCHER'],
     ACCEPTED_BY_DISPATCHER: ['AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER'],
@@ -300,27 +293,27 @@ export function advanceDispatcherOrderStatus(params: {
     IN_TRANSIT: ['DELIVERED'],
   };
 
-  const result = runInTransaction((db) => {
-    const order = db
-      .prepare(`
-        SELECT o.*, r.business_name as retailer_name, u.full_name as dispatcher_name
-        FROM orders o
-        JOIN retailers r ON r.id = o.retailer_id
-        JOIN users u ON u.id = o.dispatcher_id
-        WHERE o.id = ? AND o.dispatcher_id = ?
-      `)
-      .get(params.orderId, params.dispatcherId) as
-      | {
-          id: number;
-          order_reference: string;
-          customer_id: number;
-          dispatcher_id: number;
-          status: string;
-          delivery_confirmation_code: string;
-          retailer_name: string;
-          dispatcher_name: string;
-        }
-      | undefined;
+  const result = await runInTransaction(async (db) => {
+    const order = await db.get<{
+      id: number;
+      order_reference: string;
+      customer_id: number;
+      dispatcher_id: number;
+      status: string;
+      delivery_confirmation_code: string;
+      retailer_name: string;
+      dispatcher_name: string;
+    }>(
+      `
+      SELECT o.*, r.business_name as retailer_name, u.full_name as dispatcher_name
+      FROM orders o
+      JOIN retailers r ON r.id = o.retailer_id
+      JOIN users u ON u.id = o.dispatcher_id
+      WHERE o.id = ? AND o.dispatcher_id = ?
+    `,
+      params.orderId,
+      params.dispatcherId
+    );
 
     if (!order) {
       throw new Error('Assigned delivery job not found for your dispatcher account.');
@@ -346,44 +339,43 @@ export function advanceDispatcherOrderStatus(params: {
 
     const tsField = timestampCol[params.nextStatus];
     const extraUpdate = tsField ? `, ${tsField} = datetime('now')` : '';
-    const podUpdate =
-      params.nextStatus === 'DELIVERED'
-        ? `, proof_of_delivery_note = ?`
-        : '';
+    const podUpdate = params.nextStatus === 'DELIVERED' ? `, proof_of_delivery_note = ?` : '';
 
     const sql = `UPDATE orders SET status = ? ${extraUpdate} ${podUpdate}, updated_at = datetime('now') WHERE id = ?`;
     if (params.nextStatus === 'DELIVERED') {
-      db.prepare(sql).run(params.nextStatus, params.proofOfDeliveryNote || 'Delivered and verified electronically', order.id);
+      await db.run(sql, params.nextStatus, params.proofOfDeliveryNote || 'Delivered and verified electronically', order.id);
     } else {
-      db.prepare(sql).run(params.nextStatus, order.id);
+      await db.run(sql, params.nextStatus, order.id);
     }
 
-    // Privacy rule: automatically stop/deactivate dispatcher live location tracking once no active deliveries remain
     if (params.nextStatus === 'DELIVERED') {
-      recordDispatcherEarningForOrder(order.id, params.dispatcherId);
-      const remainingActive = db
-        .prepare(`
-          SELECT COUNT(*) as cnt FROM orders
-          WHERE dispatcher_id = ? AND status IN ('ACCEPTED_BY_DISPATCHER', 'AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER', 'IN_TRANSIT')
-        `)
-        .get(params.dispatcherId) as { cnt: number };
-      if (remainingActive.cnt === 0) {
-        db.prepare(`
+      await recordDispatcherEarningForOrder(Number(order.id), params.dispatcherId);
+      const remainingActive = await db.get<{ cnt: number }>(
+        `
+        SELECT COUNT(*) as cnt FROM orders
+        WHERE dispatcher_id = ? AND status IN ('ACCEPTED_BY_DISPATCHER', 'AWAITING_COLLECTION', 'COLLECTED_FROM_RETAILER', 'IN_TRANSIT')
+      `,
+        params.dispatcherId
+      );
+      if (Number(remainingActive?.cnt || 0) === 0) {
+        await db.run(
+          `
           UPDATE dispatcher_profiles
           SET location_tracking_enabled = 0, availability_status = CASE WHEN availability_status = 'BUSY' THEN 'ONLINE' ELSE availability_status END
           WHERE user_id = ?
-        `).run(params.dispatcherId);
+        `,
+          params.dispatcherId
+        );
       }
     } else if (params.nextStatus === 'ACCEPTED_BY_DISPATCHER') {
-      db.prepare(`UPDATE dispatcher_profiles SET availability_status = 'BUSY' WHERE user_id = ?`).run(
-        params.dispatcherId
-      );
+      await db.run(`UPDATE dispatcher_profiles SET availability_status = 'BUSY' WHERE user_id = ?`, params.dispatcherId);
     }
 
-    db.prepare(`
+    await db.run(
+      `
       INSERT INTO order_status_history (order_id, from_status, to_status, changed_by_user_id, changed_by_role, note)
       VALUES (?, ?, ?, ?, 'DISPATCHER', ?)
-    `).run(
+    `,
       order.id,
       order.status,
       params.nextStatus,
@@ -419,8 +411,8 @@ export function advanceDispatcherOrderStatus(params: {
 
   const msg = customerMessages[params.nextStatus];
   if (msg) {
-    createNotification({
-      userId: result.customer_id,
+    await createNotification({
+      userId: Number(result.customer_id),
       roleScope: 'CUSTOMER',
       title: msg.title,
       message: msg.body,
@@ -430,7 +422,7 @@ export function advanceDispatcherOrderStatus(params: {
     });
   }
 
-  notifyAllAdmins({
+  await notifyAllAdmins({
     title: `Order ${result.order_reference}: ${params.nextStatus.replace(/_/g, ' ')}`,
     message: `Dispatcher ${result.dispatcher_name} updated order ${result.order_reference} to ${params.nextStatus.replace(/_/g, ' ')}.`,
     type: 'DELIVERY',
@@ -438,7 +430,7 @@ export function advanceDispatcherOrderStatus(params: {
     relatedOrderId: params.orderId,
   });
 
-  broadcastOrderUpdate(params.orderId, result.customer_id, params.dispatcherId, params.nextStatus);
+  broadcastOrderUpdate(params.orderId, Number(result.customer_id), params.dispatcherId, params.nextStatus);
 
   return { orderReference: result.order_reference, status: params.nextStatus };
 }

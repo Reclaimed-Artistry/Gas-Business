@@ -5,6 +5,7 @@ import helmet from 'helmet';
 
 import { getDb } from './db/database.js';
 import { seedDatabaseIfEmpty } from './db/seed.js';
+import { isSupabaseAuthEnabled, isSupabaseDbEnabled } from './lib/supabase.js';
 import authRoutes from './routes/auth.js';
 import publicRoutes from './routes/public.js';
 import customerRoutes from './routes/customer.js';
@@ -12,16 +13,19 @@ import paymentRoutes from './routes/payments.js';
 import dispatcherRoutes from './routes/dispatcher.js';
 import adminRoutes from './routes/admin.js';
 
-// Ensure database schema & seeded marketplace data exist on boot/cold start
-let initialized = false;
-function ensureInitialized(): void {
-  if (!initialized) {
-    getDb();
-    seedDatabaseIfEmpty();
-    initialized = true;
+let initPromise: Promise<void> | null = null;
+function ensureInitialized(): Promise<void> {
+  if (!initPromise) {
+    initPromise = (async () => {
+      getDb();
+      await seedDatabaseIfEmpty();
+    })().catch((err) => {
+      initPromise = null;
+      throw err;
+    });
   }
+  return initPromise;
 }
-ensureInitialized();
 
 export const app = express();
 
@@ -43,17 +47,20 @@ app.use(
 app.use(cookieParser());
 app.use(express.json({ limit: '5mb' }));
 
-// Ensure DB initialized before any route handles traffic
+// Ensure DB schema & seed initialized before handling any request
 app.use((_req, _res, next) => {
-  ensureInitialized();
-  next();
+  ensureInitialized()
+    .then(() => next())
+    .catch(next);
 });
 
 // Health check
 app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
-    platform: 'BlueFlame Cooking Gas Marketplace',
+    platform: 'BlueFlame Cooking Gas Marketplace · Uyo, Akwa Ibom',
+    database: isSupabaseDbEnabled() ? 'supabase-postgresql (blueflame)' : 'local-sqlite',
+    googleAuth: isSupabaseAuthEnabled() ? 'supabase-google-oauth' : 'disabled',
     runtime: process.env.VERCEL ? 'vercel-serverless' : 'node-server',
     timestamp: new Date().toISOString(),
   });

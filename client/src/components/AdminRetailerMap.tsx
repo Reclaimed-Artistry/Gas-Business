@@ -41,8 +41,8 @@ export function AdminRetailerMap({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
     const map = L.map(containerRef.current, {
-      center: [6.505, 3.41],
-      zoom: 11,
+      center: [5.0377, 7.9128],
+      zoom: 12,
     });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO',

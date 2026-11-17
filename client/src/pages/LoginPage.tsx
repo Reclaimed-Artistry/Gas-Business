@@ -1,13 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, UserCheck, Truck, Lock, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, UserCheck, Truck, Lock, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/BrandLogo';
+
+function GoogleIcon() {
+  return (
+    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#4285F4"
+        d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
+      />
+      <path
+        fill="#34A853"
+        d="M12.255 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09C3.515 21.3 7.565 24 12.255 24z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"
+      />
+    </svg>
+  );
+}
 
 export function LoginPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, registerCustomer } = useAuth();
+  const {
+    user,
+    login,
+    loginWithGoogle,
+    registerCustomer,
+    oauthLoading,
+    oauthError,
+    googleAuthAvailable,
+    consumeOAuthRedirect,
+  } = useAuth();
 
   const [mode, setMode] = useState<'login' | 'register'>(
     searchParams.get('mode') === 'register' ? 'register' : 'login'
@@ -20,15 +52,24 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const redirectUser = (role: string) => {
-    const customRedirect = searchParams.get('redirect');
+    const storedOAuthRedirect = consumeOAuthRedirect();
+    const customRedirect = searchParams.get('redirect') || storedOAuthRedirect;
     if (customRedirect && role === 'CUSTOMER') {
-      navigate(customRedirect);
+      navigate(customRedirect, { replace: true });
       return;
     }
-    if (role === 'ADMIN') navigate('/admin');
-    else if (role === 'DISPATCHER') navigate('/dispatcher');
-    else navigate('/dashboard');
+    if (role === 'ADMIN') navigate('/admin', { replace: true });
+    else if (role === 'DISPATCHER') navigate('/dispatcher', { replace: true });
+    else navigate('/dashboard', { replace: true });
   };
+
+  // Auto-redirect after Supabase Google OAuth exchange resolves
+  useEffect(() => {
+    if (user && !oauthLoading) {
+      redirectUser(user.role);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, oauthLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +95,15 @@ export function LoginPage() {
     }
   };
 
+  const handleGoogleClick = async () => {
+    setError('');
+    try {
+      await loginWithGoogle(searchParams.get('redirect') || undefined);
+    } catch (err) {
+      setError((err as Error).message || 'Could not start Google sign-in.');
+    }
+  };
+
   const handleQuickDemo = async (demoEmail: string, demoPassword: string) => {
     setError('');
     setSubmitting(true);
@@ -66,6 +116,8 @@ export function LoginPage() {
       setSubmitting(false);
     }
   };
+
+  const displayError = error || oauthError || '';
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
@@ -106,6 +158,39 @@ export function LoginPage() {
             </button>
           </div>
 
+          {/* Google OAuth via Supabase */}
+          {googleAuthAvailable && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                disabled={submitting || oauthLoading}
+                onClick={() => void handleGoogleClick()}
+                className="w-full py-2.5 px-4 rounded-lg bg-white hover:bg-[#F7F9FC] border border-[#CBD5E1] text-[#172B4D] text-sm font-bold transition-colors flex items-center justify-center gap-2.5 shadow-xs disabled:opacity-60"
+              >
+                {oauthLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-[#073B8C]" />
+                    <span>Completing Google Sign-In...</span>
+                  </>
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    <span>
+                      {mode === 'login' ? 'Continue with Google' : 'Sign Up with Google'}
+                    </span>
+                  </>
+                )}
+              </button>
+              <div className="relative flex items-center justify-center">
+                <div className="border-t border-[#E2E8F0] w-full" />
+                <span className="bg-white px-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider shrink-0">
+                  or continue with email
+                </span>
+                <div className="border-t border-[#E2E8F0] w-full" />
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <>
@@ -115,12 +200,12 @@ export function LoginPage() {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Ngozi Okafor"
+                    placeholder="e.g. Mfoniso Ekpe"
                     className="w-full px-3.5 py-2.5 text-sm border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#073B8C]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#172B4D] mb-1">Nigerian Phone Number</label>
+                  <label className="block text-xs font-semibold text-[#172B4D] mb-1">Phone Number (Nigeria)</label>
                   <input
                     required
                     value={phone}
@@ -157,16 +242,16 @@ export function LoginPage() {
               />
             </div>
 
-            {error && (
+            {displayError && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#D64545]">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
+                <span>{displayError}</span>
               </div>
             )}
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || oauthLoading}
               className="w-full py-2.5 px-4 rounded-lg bg-[#073B8C] hover:bg-[#06265B] text-white text-sm font-bold transition-colors disabled:opacity-60"
             >
               {submitting
@@ -178,9 +263,9 @@ export function LoginPage() {
           </form>
 
           <div className="p-3.5 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-xs text-[#073B8C] leading-relaxed">
-            <strong>Platform Access Policy:</strong> Public self-registration is strictly for{' '}
-            <strong>Customers</strong>. Dispatcher accounts are provisioned exclusively by the Administrator, and
-            participating gas retailers are centrally managed without self-service logins.
+            <strong>Platform Access Policy:</strong> Public self-registration & Google Sign-In automatically provision{' '}
+            <strong>Customer</strong> accounts with digital wallets. Dispatcher accounts are onboarded exclusively by
+            BlueFlame Operations, and Uyo gas retailers are centrally managed without self-service logins.
           </div>
         </div>
 
@@ -189,55 +274,55 @@ export function LoginPage() {
           <div className="bg-[#06265B] text-white rounded-xl p-6 space-y-4 border border-[#073B8C]">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#EAF3FF]/80">
-                Interactive Role Switching
+                Uyo, Akwa Ibom · Interactive Role Switching
               </span>
               <h2 className="text-lg font-extrabold mt-0.5">Explore All 3 Platform Portals</h2>
               <p className="text-xs text-[#EAF3FF]/80 mt-1">
                 Sign in instantly to inspect connected live workflows across Customer, Dispatcher, and Administrator
-                dashboards.
+                dashboards in Uyo.
               </p>
             </div>
 
             <div className="space-y-2.5">
               <button
                 type="button"
-                disabled={submitting}
-                onClick={() => void handleQuickDemo('amaka.nwosu@example.com', 'Customer@2026')}
+                disabled={submitting || oauthLoading}
+                onClick={() => void handleQuickDemo('edidiong.udoh@example.com', 'Customer@2026')}
                 className="w-full text-left p-3.5 rounded-lg bg-white text-[#172B4D] hover:bg-[#EAF3FF] transition-colors flex items-start gap-3"
               >
                 <div className="p-2 rounded-lg bg-[#EAF3FF] text-[#073B8C] shrink-0">
                   <UserCheck className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-extrabold text-[#06265B]">Customer Portal — Amaka Nwosu</div>
+                  <div className="text-xs font-extrabold text-[#06265B]">Customer Portal — Edidiong Udoh</div>
                   <div className="text-[11px] text-[#64748B] mt-0.5">
-                    ₦45,000 wallet · Active In-Transit order · Saved Lekki & VI addresses
+                    ₦45,000 wallet · Active In-Transit order · Saved Ewet Housing & Udo Udoma addresses
                   </div>
-                  <div className="text-[10px] font-mono text-[#1769C2] mt-1">amaka.nwosu@example.com</div>
+                  <div className="text-[10px] font-mono text-[#1769C2] mt-1">edidiong.udoh@example.com</div>
                 </div>
               </button>
 
               <button
                 type="button"
-                disabled={submitting}
-                onClick={() => void handleQuickDemo('emeka.dispatch@blueflame.ng', 'Dispatch@2026')}
+                disabled={submitting || oauthLoading}
+                onClick={() => void handleQuickDemo('ubong.dispatch@blueflame.ng', 'Dispatch@2026')}
                 className="w-full text-left p-3.5 rounded-lg bg-white text-[#172B4D] hover:bg-[#EAF3FF] transition-colors flex items-start gap-3"
               >
                 <div className="p-2 rounded-lg bg-[#EAF3FF] text-[#073B8C] shrink-0">
                   <Truck className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-extrabold text-[#06265B]">Dispatcher Field App — Emeka Obi</div>
+                  <div className="text-xs font-extrabold text-[#06265B]">Dispatcher Field App — Ubong Essien</div>
                   <div className="text-[11px] text-[#64748B] mt-0.5">
-                    Assigned jobs · 8-stage workflow · Live GPS toggle · Earnings ledger
+                    Assigned Uyo jobs · 8-stage workflow · Live GPS toggle · Earnings ledger
                   </div>
-                  <div className="text-[10px] font-mono text-[#1769C2] mt-1">emeka.dispatch@blueflame.ng</div>
+                  <div className="text-[10px] font-mono text-[#1769C2] mt-1">ubong.dispatch@blueflame.ng</div>
                 </div>
               </button>
 
               <button
                 type="button"
-                disabled={submitting}
+                disabled={submitting || oauthLoading}
                 onClick={() => void handleQuickDemo('admin@blueflame.ng', 'Admin@BlueFlame2026')}
                 className="w-full text-left p-3.5 rounded-lg bg-white text-[#172B4D] hover:bg-[#EAF3FF] transition-colors flex items-start gap-3"
               >
@@ -245,9 +330,9 @@ export function LoginPage() {
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-extrabold text-[#06265B]">Administrator Console — Chinedu Okafor</div>
+                  <div className="text-xs font-extrabold text-[#06265B]">Administrator Console — Iniobong Ekpo</div>
                   <div className="text-[11px] text-[#64748B] mt-0.5">
-                    Retailers & Map · Pricing · Auto-Dispatch · Settlements · Refunds
+                    Uyo Retailers & Map · Pricing · Auto-Dispatch · Settlements · Refunds
                   </div>
                   <div className="text-[10px] font-mono text-[#1769C2] mt-1">admin@blueflame.ng</div>
                 </div>

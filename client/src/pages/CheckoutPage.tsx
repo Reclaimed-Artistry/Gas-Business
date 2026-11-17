@@ -547,7 +547,7 @@ export function CheckoutPage() {
                   <input
                     value={promoInput}
                     onChange={(e) => setPromoInput(e.target.value)}
-                    placeholder="Try WELCOME500 or REFILL5"
+                    placeholder="Try WELCOME500 or UYO5"
                     className="w-full pl-8 pr-3 py-2 text-xs border border-[#E2E8F0] rounded-lg uppercase focus:outline-none focus:border-[#073B8C]"
                   />
                 </div>

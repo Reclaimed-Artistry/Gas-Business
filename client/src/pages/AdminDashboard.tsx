@@ -179,10 +179,10 @@ export function AdminDashboard() {
     vehicleType: 'Heavy-Duty Delivery Motorcycle',
     plateNumber: '',
     licenseNumber: '',
-    zone: 'Lekki / VI / Ikoyi',
+    zone: 'Ewet Housing / Oron Road / Shelter Afrique',
     compensationModel: 'FIXED_PLUS_DISTANCE',
-    baseRateNaira: '850',
-    perKmRateNaira: '85',
+    baseRateNaira: '750',
+    perKmRateNaira: '75',
   });
 
   // Create Customer Form
@@ -266,10 +266,10 @@ export function AdminDashboard() {
         vehicleType: 'Heavy-Duty Delivery Motorcycle',
         plateNumber: '',
         licenseNumber: '',
-        zone: 'Lekki / VI / Ikoyi',
+        zone: 'Ewet Housing / Oron Road / Shelter Afrique',
         compensationModel: 'FIXED_PLUS_DISTANCE',
-        baseRateNaira: '850',
-        perKmRateNaira: '85',
+        baseRateNaira: '750',
+        perKmRateNaira: '75',
       });
       flash('Dispatcher account provisioned with login credentials.');
       void loadAll();
@@ -497,8 +497,8 @@ export function AdminDashboard() {
                 ))}
               </div>
               <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E2E8F0] text-[11px] text-[#64748B]">
-                Expansion readiness: Add retailers in Port Harcourt, Ibadan, Kano, or additional Lagos suburbs from the{' '}
-                <strong>Retailers & Map</strong> tab.
+                Expansion readiness: Currently anchored across Uyo, Akwa Ibom. Add depots in Eket, Ikot Ekpene, Oron,
+                Calabar, or other cities anytime from the <strong>Retailers &amp; Map</strong> tab.
               </div>
             </div>
           </div>

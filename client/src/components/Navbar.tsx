@@ -92,7 +92,7 @@ export function Navbar() {
                     {locating ? 'Detecting GPS...' : 'Use My Current GPS Location'}
                   </button>
                   <div className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] px-2 py-1">
-                    Popular Service Areas (Nigeria)
+                    Active Service Areas (Uyo, Akwa Ibom)
                   </div>
                   <div className="max-h-60 overflow-y-auto divide-y divide-[#F1F5F9]">
                     {NIGERIAN_PRESET_LOCATIONS.map((preset) => (

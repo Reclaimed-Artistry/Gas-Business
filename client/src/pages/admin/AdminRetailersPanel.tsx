@@ -44,16 +44,16 @@ export function AdminRetailersPanel({
     email: '',
     address: '',
     neighbourhood: '',
-    city: 'Lagos',
-    state: 'Lagos',
-    lat: 6.4541,
-    lng: 3.3947,
+    city: 'Uyo',
+    state: 'Akwa Ibom',
+    lat: 5.0377,
+    lng: 7.9128,
     description: '',
     maxDeliveryRadiusKm: 10,
-    coverageAreasText: 'Victoria Island, Ikoyi, Lekki Phase 1',
-    baseDeliveryFeeNaira: 1000,
-    perKmDeliveryFeeNaira: 120,
-    estimatedPrepMins: 15,
+    coverageAreasText: 'Ewet Housing, Oron Road, Shelter Afrique, Udo Udoma',
+    baseDeliveryFeeNaira: 900,
+    perKmDeliveryFeeNaira: 110,
+    estimatedPrepMins: 14,
     status: 'APPROVED_ACTIVE',
     featured: false,
     isOpenNow: true,
@@ -74,16 +74,16 @@ export function AdminRetailersPanel({
       email: '',
       address: '',
       neighbourhood: '',
-      city: 'Lagos',
-      state: 'Lagos',
-      lat: 6.4541,
-      lng: 3.3947,
+      city: 'Uyo',
+      state: 'Akwa Ibom',
+      lat: 5.0377,
+      lng: 7.9128,
       description: '',
       maxDeliveryRadiusKm: 10,
       coverageAreasText: '',
-      baseDeliveryFeeNaira: 1000,
-      perKmDeliveryFeeNaira: 120,
-      estimatedPrepMins: 15,
+      baseDeliveryFeeNaira: 900,
+      perKmDeliveryFeeNaira: 110,
+      estimatedPrepMins: 14,
       status: 'APPROVED_ACTIVE',
       featured: false,
       isOpenNow: true,
@@ -402,7 +402,7 @@ export function AdminRetailersPanel({
               <input
                 value={form.coverageAreasText}
                 onChange={(e) => setForm({ ...form, coverageAreasText: e.target.value })}
-                placeholder="Lekki Phase 1, Victoria Island, Ikoyi, Oniru"
+                placeholder="Ewet Housing, Oron Road, Shelter Afrique, Udo Udoma"
                 className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg"
               />
             </div>

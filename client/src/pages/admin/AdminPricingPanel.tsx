@@ -59,7 +59,7 @@ export function AdminPricingPanel({
     sizeKg: '',
     unitLabel: '',
     description: '',
-    imageUrl: '/images/product-refill-12kg.jpg',
+    imageUrl: '/images/prod-refill-12-5kg.jpg',
   });
 
   // Assign / update pricing for retailer
@@ -120,7 +120,7 @@ export function AdminPricingPanel({
         sizeKg: '',
         unitLabel: '',
         description: '',
-        imageUrl: '/images/product-refill-12kg.jpg',
+        imageUrl: '/images/prod-refill-12-5kg.jpg',
       });
       onFlash('Product added to central catalog.');
       void loadCatalog();
@@ -252,10 +252,15 @@ export function AdminPricingPanel({
               onChange={(e) => setNewProd({ ...newProd, imageUrl: e.target.value })}
               className="w-full px-3 py-2 border border-[#E2E8F0] rounded-lg bg-[#F7F9FC]"
             >
-              <option value="/images/product-refill-small.jpg">Small Cylinder (1kg–6kg)</option>
-              <option value="/images/product-refill-12kg.jpg">Standard 12.5kg Cylinder</option>
-              <option value="/images/product-refill-large.jpg">Large 25kg / 50kg Cylinder</option>
-              <option value="/images/product-accessories.jpg">Gas Accessories Set</option>
+              <option value="/images/prod-refill-3kg.jpg">Compact 3kg Refill</option>
+              <option value="/images/prod-refill-6kg.jpg">Medium 6kg Refill</option>
+              <option value="/images/prod-refill-12-5kg.jpg">Standard 12.5kg Refill</option>
+              <option value="/images/prod-refill-25kg.jpg">Commercial 25kg Refill</option>
+              <option value="/images/prod-refill-50kg.jpg">Industrial 50kg Refill</option>
+              <option value="/images/prod-cylinder-12-5kg.webp">New 12.5kg Cylinder</option>
+              <option value="/images/prod-regulator.jpg">High-Pressure Regulator</option>
+              <option value="/images/prod-hose.jpg">Braided LPG Hose</option>
+              <option value="/images/prod-burner.jpg">Camp Gas Burner</option>
             </select>
           </div>
           <div>

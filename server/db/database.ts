@@ -1,6 +1,19 @@
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import path from 'node:path';
+import { getSupabaseAdmin, isSupabaseDbEnabled } from '../lib/supabase.js';
+
+export interface RunResult {
+  changes: number;
+  lastInsertRowid: number;
+}
+
+export interface DbClient {
+  readonly dialect: 'postgres' | 'sqlite';
+  get<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T | undefined>;
+  all<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T[]>;
+  run(sql: string, ...params: unknown[]): Promise<RunResult>;
+}
 
 const DEFAULT_DATA_DIR = process.env.VERCEL
   ? '/tmp/blueflame-data'
@@ -8,73 +21,247 @@ const DEFAULT_DATA_DIR = process.env.VERCEL
 
 export const DB_PATH = process.env.BLUEFLAME_DB_PATH || path.join(DEFAULT_DATA_DIR, 'blueflame.db');
 
-const dbDir = path.dirname(DB_PATH);
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
+let sqliteInstance: DatabaseSync | null = null;
+let sqliteClient: DbClient | null = null;
+let pgClient: DbClient | null = null;
+let sqliteTxDepth = 0;
 
-let dbInstance: DatabaseSync | null = null;
-let txDepth = 0;
+/**
+ * Converts standard `?` parameterized SQL (plus tiny SQLite idioms like datetime('now'))
+ * to PostgreSQL `$1, $2, ...` syntax without modifying string literals.
+ */
+function translateSqlForPostgres(sql: string): string {
+  let out = '';
+  let inStr = false;
+  let paramIdx = 0;
 
-export function getDb(): DatabaseSync {
-  if (!dbInstance) {
-    dbInstance = new DatabaseSync(DB_PATH);
-    try {
-      dbInstance.exec('PRAGMA journal_mode = WAL;');
-    } catch {
-      dbInstance.exec('PRAGMA journal_mode = DELETE;');
-    }
-    dbInstance.exec('PRAGMA foreign_keys = ON;');
-    dbInstance.exec('PRAGMA busy_timeout = 5000;');
-    initializeSchema(dbInstance);
-  }
-  return dbInstance;
-}
-
-export function runInTransaction<T>(fn: (db: DatabaseSync) => T): T {
-  const db = getDb();
-  const isNested = txDepth > 0;
-  const savepoint = `sp_${txDepth + 1}`;
-  if (isNested) {
-    db.exec(`SAVEPOINT ${savepoint}`);
-  } else {
-    db.exec('BEGIN IMMEDIATE');
-  }
-  txDepth += 1;
-  try {
-    const result = fn(db);
-    txDepth -= 1;
-    if (isNested) {
-      db.exec(`RELEASE SAVEPOINT ${savepoint}`);
+  for (let i = 0; i < sql.length; i++) {
+    const ch = sql[i];
+    if (inStr) {
+      out += ch;
+      if (ch === "'") {
+        if (i + 1 < sql.length && sql[i + 1] === "'") {
+          out += "'";
+          i += 1;
+        } else {
+          inStr = false;
+        }
+      }
+    } else if (ch === "'") {
+      inStr = true;
+      out += ch;
+    } else if (ch === '?') {
+      paramIdx += 1;
+      out += `$${paramIdx}`;
     } else {
-      db.exec('COMMIT');
+      out += ch;
+    }
+  }
+
+  // Replace datetime('now') with UTC timestamp string matching existing column convention
+  out = out.replace(/datetime\s*\(\s*'now'\s*\)/gi, "to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS')");
+
+  // Convert INSERT OR IGNORE INTO ... -> INSERT INTO ... ON CONFLICT DO NOTHING
+  if (/^\s*INSERT\s+OR\s+IGNORE\s+INTO\b/i.test(out)) {
+    out = out.replace(/^\s*INSERT\s+OR\s+IGNORE\s+INTO\b/i, 'INSERT INTO');
+    if (!/\bON\s+CONFLICT\b/i.test(out)) {
+      out = `${out.trim().replace(/;$/, '')} ON CONFLICT DO NOTHING`;
+    }
+  }
+
+  // Convert INSERT OR REPLACE INTO platform_settings ...
+  if (/^\s*INSERT\s+OR\s+REPLACE\s+INTO\s+platform_settings\b/i.test(out)) {
+    out = out.replace(/^\s*INSERT\s+OR\s+REPLACE\s+INTO\s+platform_settings\b/i, 'INSERT INTO platform_settings');
+    if (!/\bON\s+CONFLICT\b/i.test(out)) {
+      out = `${out.trim().replace(/;$/, '')} ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS')`;
+    }
+  }
+
+  return out;
+}
+
+function normalizePgParams(params: unknown[]): unknown[] {
+  return params.map((p) => {
+    if (p === undefined) return null;
+    if (typeof p === 'boolean') return p ? 1 : 0;
+    return p;
+  });
+}
+
+async function callSupabaseExecSql(
+  sql: string,
+  params: unknown[],
+  mode: 'query' | 'exec',
+  appendReturningId = false
+): Promise<{ rows: Record<string, unknown>[]; changes: number }> {
+  const supabase = getSupabaseAdmin();
+  let pgSql = translateSqlForPostgres(sql).trim().replace(/;$/, '');
+  if (appendReturningId && !/\bRETURNING\b/i.test(pgSql)) {
+    pgSql = `${pgSql} RETURNING id`;
+  }
+  const { data, error } = await supabase.rpc('exec_sql', {
+    p_sql: pgSql,
+    p_params: normalizePgParams(params),
+    p_mode: mode,
+  });
+
+  if (error) {
+    throw new Error(`Supabase DB error: ${error.message}`);
+  }
+  const payload = (data || { rows: [], changes: 0 }) as {
+    rows?: Record<string, unknown>[];
+    changes?: number;
+  };
+  return {
+    rows: Array.isArray(payload.rows) ? payload.rows : [],
+    changes: Number(payload.changes || 0),
+  };
+}
+
+function getPostgresClient(): DbClient {
+  if (!pgClient) {
+    pgClient = {
+      dialect: 'postgres',
+      async get<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T | undefined> {
+        const res = await callSupabaseExecSql(sql, params, 'query');
+        return res.rows[0] as T | undefined;
+      },
+      async all<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T[]> {
+        const res = await callSupabaseExecSql(sql, params, 'query');
+        return res.rows as T[];
+      },
+      async run(sql: string, ...params: unknown[]): Promise<RunResult> {
+        const trimmed = sql.trim().replace(/;$/, '');
+        const isInsert = /^\s*INSERT\b/i.test(trimmed);
+        const isPlatformSettings = /\bINTO\s+platform_settings\b/i.test(trimmed);
+        const hasReturning = /\bRETURNING\b/i.test(trimmed);
+
+        if (isInsert && !isPlatformSettings && !hasReturning) {
+          const res = await callSupabaseExecSql(trimmed, params, 'query', true);
+          const firstRow = res.rows[0] as { id?: number | string } | undefined;
+          return {
+            changes: res.changes,
+            lastInsertRowid: firstRow?.id !== undefined ? Number(firstRow.id) : 0,
+          };
+        }
+
+        if (hasReturning) {
+          const res = await callSupabaseExecSql(trimmed, params, 'query');
+          const firstRow = res.rows[0] as { id?: number | string } | undefined;
+          return {
+            changes: res.changes,
+            lastInsertRowid: firstRow?.id !== undefined ? Number(firstRow.id) : 0,
+          };
+        }
+
+        const res = await callSupabaseExecSql(trimmed, params, 'exec');
+        return { changes: res.changes, lastInsertRowid: 0 };
+      },
+    };
+  }
+  return pgClient;
+}
+
+function getSqliteNative(): DatabaseSync {
+  if (!sqliteInstance) {
+    const dbDir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    sqliteInstance = new DatabaseSync(DB_PATH);
+    try {
+      sqliteInstance.exec('PRAGMA journal_mode = WAL;');
+    } catch {
+      sqliteInstance.exec('PRAGMA journal_mode = DELETE;');
+    }
+    sqliteInstance.exec('PRAGMA foreign_keys = ON;');
+    sqliteInstance.exec('PRAGMA busy_timeout = 5000;');
+    initializeSqliteSchema(sqliteInstance);
+  }
+  return sqliteInstance;
+}
+
+function getSqliteClient(): DbClient {
+  if (!sqliteClient) {
+    const native = getSqliteNative();
+    sqliteClient = {
+      dialect: 'sqlite',
+      async get<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T | undefined> {
+        return native.prepare(sql).get(...(params as never[])) as T | undefined;
+      },
+      async all<T = Record<string, unknown>>(sql: string, ...params: unknown[]): Promise<T[]> {
+        return native.prepare(sql).all(...(params as never[])) as T[];
+      },
+      async run(sql: string, ...params: unknown[]): Promise<RunResult> {
+        const info = native.prepare(sql).run(...(params as never[]));
+        return {
+          changes: Number(info.changes || 0),
+          lastInsertRowid: Number(info.lastInsertRowid || 0),
+        };
+      },
+    };
+  }
+  return sqliteClient;
+}
+
+export function getDb(): DbClient {
+  if (isSupabaseDbEnabled()) {
+    return getPostgresClient();
+  }
+  return getSqliteClient();
+}
+
+export async function runInTransaction<T>(fn: (db: DbClient) => Promise<T>): Promise<T> {
+  const db = getDb();
+  if (db.dialect === 'postgres') {
+    // Each Supabase RPC statement is ACID; critical financial deductions/credits use atomic SQL guards + idempotency keys
+    return await fn(db);
+  }
+
+  const native = getSqliteNative();
+  const isNested = sqliteTxDepth > 0;
+  const savepoint = `sp_${sqliteTxDepth + 1}`;
+  if (isNested) {
+    native.exec(`SAVEPOINT ${savepoint}`);
+  } else {
+    native.exec('BEGIN IMMEDIATE');
+  }
+  sqliteTxDepth += 1;
+  try {
+    const result = await fn(db);
+    sqliteTxDepth -= 1;
+    if (isNested) {
+      native.exec(`RELEASE SAVEPOINT ${savepoint}`);
+    } else {
+      native.exec('COMMIT');
     }
     return result;
   } catch (err) {
-    txDepth -= 1;
+    sqliteTxDepth -= 1;
     try {
       if (isNested) {
-        db.exec(`ROLLBACK TO SAVEPOINT ${savepoint}`);
-        db.exec(`RELEASE SAVEPOINT ${savepoint}`);
+        native.exec(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+        native.exec(`RELEASE SAVEPOINT ${savepoint}`);
       } else {
-        db.exec('ROLLBACK');
+        native.exec('ROLLBACK');
       }
     } catch {
-      // Ignore rollback errors if connection already rolled back
+      // Ignore rollback errors if already rolled back
     }
     throw err;
   }
 }
 
-export function initializeSchema(db: DatabaseSync): void {
+function initializeSqliteSchema(db: DatabaseSync): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      auth_user_id TEXT UNIQUE,
       role TEXT NOT NULL CHECK(role IN ('CUSTOMER', 'DISPATCHER', 'ADMIN')),
       full_name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-      phone TEXT NOT NULL,
-      password_hash TEXT NOT NULL,
+      phone TEXT NOT NULL DEFAULT '',
+      password_hash TEXT NOT NULL DEFAULT '',
       avatar_url TEXT,
       status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'SUSPENDED', 'INACTIVE')),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -102,21 +289,20 @@ export function initializeSchema(db: DatabaseSync): void {
       vehicle_type TEXT NOT NULL DEFAULT 'Motorcycle',
       plate_number TEXT NOT NULL,
       license_number TEXT NOT NULL,
-      zone TEXT NOT NULL DEFAULT 'Lagos Island',
+      zone TEXT NOT NULL DEFAULT 'Ewet Housing / Oron Road',
       availability_status TEXT NOT NULL DEFAULT 'OFFLINE' CHECK(availability_status IN ('ONLINE', 'BUSY', 'OFFLINE')),
-      current_lat REAL NOT NULL DEFAULT 6.4541,
-      current_lng REAL NOT NULL DEFAULT 3.3947,
+      current_lat REAL NOT NULL DEFAULT 5.0377,
+      current_lng REAL NOT NULL DEFAULT 7.9128,
       location_tracking_enabled INTEGER NOT NULL DEFAULT 0,
       location_updated_at TEXT,
       compensation_model TEXT NOT NULL DEFAULT 'FIXED_PLUS_DISTANCE' CHECK(compensation_model IN ('FIXED', 'DISTANCE', 'ZONE', 'FIXED_PLUS_DISTANCE')),
-      base_rate_kobo INTEGER NOT NULL DEFAULT 80000,
-      per_km_rate_kobo INTEGER NOT NULL DEFAULT 8000,
+      base_rate_kobo INTEGER NOT NULL DEFAULT 75000,
+      per_km_rate_kobo INTEGER NOT NULL DEFAULT 7500,
       rating_avg REAL NOT NULL DEFAULT 5.0,
       completed_deliveries_count INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Retailers are centrally managed by Admin ONLY. Zero login credentials or accounts.
     CREATE TABLE IF NOT EXISTS retailers (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       business_name TEXT NOT NULL,
@@ -131,15 +317,15 @@ export function initializeSchema(db: DatabaseSync): void {
       lat REAL NOT NULL,
       lng REAL NOT NULL,
       logo_url TEXT DEFAULT '',
-      cover_image_url TEXT DEFAULT '/images/retailer-depot.jpg',
+      cover_image_url TEXT DEFAULT '/images/depot-ewet.jpg',
       description TEXT NOT NULL DEFAULT '',
       operating_hours_json TEXT NOT NULL DEFAULT '{}',
       is_open_now INTEGER NOT NULL DEFAULT 1,
-      max_delivery_radius_km REAL NOT NULL DEFAULT 10.0,
+      max_delivery_radius_km REAL NOT NULL DEFAULT 9.0,
       coverage_areas_json TEXT NOT NULL DEFAULT '[]',
-      base_delivery_fee_kobo INTEGER NOT NULL DEFAULT 100000,
-      per_km_delivery_fee_kobo INTEGER NOT NULL DEFAULT 12000,
-      estimated_prep_mins INTEGER NOT NULL DEFAULT 15,
+      base_delivery_fee_kobo INTEGER NOT NULL DEFAULT 85000,
+      per_km_delivery_fee_kobo INTEGER NOT NULL DEFAULT 10000,
+      estimated_prep_mins INTEGER NOT NULL DEFAULT 12,
       status TEXT NOT NULL DEFAULT 'APPROVED_ACTIVE' CHECK(status IN ('APPROVED_ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_APPROVAL')),
       rating_avg REAL NOT NULL DEFAULT 4.8,
       review_count INTEGER NOT NULL DEFAULT 0,
@@ -175,12 +361,11 @@ export function initializeSchema(db: DatabaseSync): void {
       size_kg REAL,
       unit_label TEXT NOT NULL,
       description TEXT NOT NULL DEFAULT '',
-      image_url TEXT NOT NULL DEFAULT '/images/product-refill-12kg.jpg',
+      image_url TEXT NOT NULL DEFAULT '/images/prod-refill-12-5kg.jpg',
       is_active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Independent per-retailer pricing & stock controlled exclusively by Administrator
     CREATE TABLE IF NOT EXISTS retailer_products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       retailer_id INTEGER NOT NULL REFERENCES retailers(id) ON DELETE CASCADE,
@@ -262,20 +447,9 @@ export function initializeSchema(db: DatabaseSync): void {
       retailer_id INTEGER NOT NULL REFERENCES retailers(id),
       dispatcher_id INTEGER REFERENCES users(id),
       status TEXT NOT NULL DEFAULT 'AWAITING_PAYMENT' CHECK(status IN (
-        'AWAITING_PAYMENT',
-        'PAYMENT_CONFIRMED',
-        'ORDER_RECEIVED',
-        'AWAITING_DISPATCHER_ASSIGNMENT',
-        'ASSIGNED_TO_DISPATCHER',
-        'ACCEPTED_BY_DISPATCHER',
-        'AWAITING_COLLECTION',
-        'COLLECTED_FROM_RETAILER',
-        'IN_TRANSIT',
-        'DELIVERED',
-        'DELIVERY_FAILED',
-        'CANCELLED',
-        'REFUND_PROCESSING',
-        'REFUNDED'
+        'AWAITING_PAYMENT','PAYMENT_CONFIRMED','ORDER_RECEIVED','AWAITING_DISPATCHER_ASSIGNMENT',
+        'ASSIGNED_TO_DISPATCHER','ACCEPTED_BY_DISPATCHER','AWAITING_COLLECTION','COLLECTED_FROM_RETAILER',
+        'IN_TRANSIT','DELIVERED','DELIVERY_FAILED','CANCELLED','REFUND_PROCESSING','REFUNDED'
       )),
       payment_method TEXT NOT NULL CHECK(payment_method IN ('WALLET', 'DIRECT_ONLINE')),
       payment_status TEXT NOT NULL DEFAULT 'AWAITING_PAYMENT' CHECK(payment_status IN ('AWAITING_PAYMENT', 'PAID', 'FAILED', 'REFUND_PROCESSING', 'REFUNDED')),
@@ -289,7 +463,7 @@ export function initializeSchema(db: DatabaseSync): void {
       delivery_lng REAL NOT NULL,
       delivery_instructions TEXT DEFAULT '',
       distance_km REAL NOT NULL DEFAULT 0,
-      estimated_delivery_mins INTEGER NOT NULL DEFAULT 35,
+      estimated_delivery_mins INTEGER NOT NULL DEFAULT 30,
       subtotal_kobo INTEGER NOT NULL,
       retailer_supply_total_kobo INTEGER NOT NULL,
       delivery_fee_kobo INTEGER NOT NULL,

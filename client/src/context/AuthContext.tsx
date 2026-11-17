@@ -1,6 +1,9 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { apiRequest, getStoredToken, setStoredToken, subscribeToPlatformEvents } from '../lib/api';
+import { getSupabaseBrowserClient, isSupabaseClientConfigured } from '../lib/supabase';
 import type { DispatcherProfile, NotificationItem, User } from '../types';
+
+const OAUTH_REDIRECT_KEY = 'blueflame_oauth_redirect';
 
 interface AuthContextValue {
   user: User | null;
@@ -9,7 +12,11 @@ interface AuthContextValue {
   notifications: NotificationItem[];
   unreadNotifications: number;
   loading: boolean;
+  oauthLoading: boolean;
+  oauthError: string | null;
+  googleAuthAvailable: boolean;
   login: (email: string, password: string) => Promise<User>;
+  loginWithGoogle: (redirectAfter?: string) => Promise<void>;
   registerCustomer: (data: {
     fullName: string;
     email: string;
@@ -22,6 +29,7 @@ interface AuthContextValue {
   markNotificationRead: (id: number) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   setWalletBalanceKobo: React.Dispatch<React.SetStateAction<number>>;
+  consumeOAuthRedirect: () => string | null;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -33,6 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(null);
+  const [googleAuthAvailable, setGoogleAuthAvailable] = useState(isSupabaseClientConfigured());
+  const exchangingRef = useRef(false);
 
   const refreshNotifications = useCallback(async () => {
     if (!getStoredToken()) return;
@@ -46,6 +58,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // ignore if unauthenticated
     }
   }, []);
+
+  const exchangeSupabaseToken = useCallback(
+    async (accessToken: string): Promise<User | null> => {
+      if (exchangingRef.current) return null;
+      exchangingRef.current = true;
+      setOauthLoading(true);
+      setOauthError(null);
+      try {
+        const res = await apiRequest<{
+          user: User;
+          token: string;
+          walletBalanceKobo?: number;
+          dispatcherProfile?: DispatcherProfile | null;
+        }>('/api/auth/supabase-exchange', {
+          method: 'POST',
+          body: { accessToken },
+        });
+        setStoredToken(res.token);
+        setUser(res.user);
+        setWalletBalanceKobo(res.walletBalanceKobo ?? 0);
+        setDispatcherProfile(res.dispatcherProfile ?? null);
+        void refreshNotifications();
+
+        // Clean OAuth parameters from URL cleanly
+        if (window.location.search.includes('code=') || window.location.hash.includes('access_token=')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        return res.user;
+      } catch (err) {
+        setOauthError((err as Error).message || 'Could not complete Google sign-in.');
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) {
+          await supabase.auth.signOut().catch(() => {});
+        }
+        return null;
+      } finally {
+        exchangingRef.current = false;
+        setOauthLoading(false);
+      }
+    },
+    [refreshNotifications]
+  );
 
   const refreshAuth = useCallback(async () => {
     if (!getStoredToken()) {
@@ -77,9 +131,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshNotifications]);
 
+  // Verify backend Google Auth capability on mount
+  useEffect(() => {
+    apiRequest<{ googleAuthEnabled: boolean }>('/api/auth/config')
+      .then((cfg) => {
+        setGoogleAuthAvailable(Boolean(cfg.googleAuthEnabled && isSupabaseClientConfigured()));
+      })
+      .catch(() => {
+        setGoogleAuthAvailable(isSupabaseClientConfigured());
+      });
+  }, []);
+
+  // Load existing BlueFlame JWT session + listen for Supabase Google OAuth redirects
   useEffect(() => {
     void refreshAuth();
-  }, [refreshAuth]);
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const isOAuthCallbackUrl =
+      window.location.search.includes('code=') || window.location.hash.includes('access_token=');
+    if (isOAuthCallbackUrl) {
+      setOauthLoading(true);
+    }
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.access_token && !getStoredToken()) {
+        void exchangeSupabaseToken(session.access_token);
+      }
+    });
+
+    // Also inspect current session right away in case PKCE already resolved
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.access_token && !getStoredToken()) {
+        void exchangeSupabaseToken(data.session.access_token);
+      } else if (isOAuthCallbackUrl && !data.session) {
+        // Give PKCE a moment before clearing loading state
+        setTimeout(() => setOauthLoading(false), 2500);
+      }
+    });
+
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
+  }, [refreshAuth, exchangeSupabaseToken]);
 
   useEffect(() => {
     if (!user) return;
@@ -112,6 +207,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return res.user;
   };
 
+  const loginWithGoogle = async (redirectAfter?: string): Promise<void> => {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      throw new Error('Google sign-in is not configured in this environment.');
+    }
+    setOauthError(null);
+    setOauthLoading(true);
+    try {
+      if (redirectAfter) {
+        sessionStorage.setItem(OAUTH_REDIRECT_KEY, redirectAfter);
+      } else {
+        sessionStorage.removeItem(OAUTH_REDIRECT_KEY);
+      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/login`,
+          queryParams: {
+            prompt: 'select_account',
+          },
+        },
+      });
+      if (error) {
+        setOauthLoading(false);
+        throw new Error(error.message);
+      }
+    } catch (err) {
+      setOauthLoading(false);
+      throw err;
+    }
+  };
+
+  const consumeOAuthRedirect = (): string | null => {
+    try {
+      const target = sessionStorage.getItem(OAUTH_REDIRECT_KEY);
+      if (target) sessionStorage.removeItem(OAUTH_REDIRECT_KEY);
+      return target;
+    } catch {
+      return null;
+    }
+  };
+
   const registerCustomer = async (data: {
     fullName: string;
     email: string;
@@ -135,6 +272,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await apiRequest('/api/auth/logout', { method: 'POST' });
     } catch {
       // ignore
+    }
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      await supabase.auth.signOut().catch(() => {});
     }
     setStoredToken(null);
     setUser(null);
@@ -165,7 +306,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         notifications,
         unreadNotifications,
         loading,
+        oauthLoading,
+        oauthError,
+        googleAuthAvailable,
         login,
+        loginWithGoogle,
         registerCustomer,
         logout,
         refreshAuth,
@@ -173,6 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         markNotificationRead,
         markAllNotificationsRead,
         setWalletBalanceKobo,
+        consumeOAuthRedirect,
       }}
     >
       {children}

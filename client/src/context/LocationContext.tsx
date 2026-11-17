@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import { NIGERIAN_PRESET_LOCATIONS, matchNearestPreset } from '../lib/locations';
 import type { DeliveryLocation } from '../types';
 
-const STORAGE_KEY = 'blueflame_delivery_location';
+const STORAGE_KEY = 'blueflame_uyo_delivery_location_v2';
 
 interface LocationContextValue {
   location: DeliveryLocation;
@@ -49,14 +49,13 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   const detectGpsLocation = async (): Promise<{ ok: boolean; message: string }> => {
     if (!('geolocation' in navigator)) {
-      return { ok: false, message: 'GPS geolocation is not supported by this browser. Please choose a location manually.' };
+      return { ok: false, message: 'GPS geolocation is not supported by this browser. Please choose a Uyo neighbourhood manually.' };
     }
     setLocating(true);
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
-          // If user is outside Nigeria (e.g. sandbox proxy/VPN), still set coordinates cleanly or let them inspect
           const matched = matchNearestPreset(latitude, longitude);
           setLocation({
             ...matched,
@@ -70,7 +69,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           setLocating(false);
           resolve({
             ok: false,
-            message: 'Location permission denied or unavailable. Select a neighbourhood or pin directly on the map.',
+            message: 'Location permission denied or unavailable. Select a Uyo neighbourhood or pin directly on the map.',
           });
         },
         { enableHighAccuracy: true, timeout: 8000 }

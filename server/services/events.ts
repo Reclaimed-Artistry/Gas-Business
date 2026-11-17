@@ -56,14 +56,14 @@ export interface CreateNotificationInput {
   relatedOrderId?: number | null;
 }
 
-export function createNotification(input: CreateNotificationInput): number {
+export async function createNotification(input: CreateNotificationInput): Promise<number> {
   const db = getDb();
   const channels = input.channels || ['IN_APP', 'EMAIL'];
-  const stmt = db.prepare(`
+  const info = await db.run(
+    `
     INSERT INTO notifications (user_id, role_scope, title, message, type, channels_json, related_order_id)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  const info = stmt.run(
+  `,
     input.userId,
     input.roleScope,
     input.title,
@@ -85,13 +85,13 @@ export function createNotification(input: CreateNotificationInput): number {
   return notificationId;
 }
 
-export function notifyAllAdmins(input: Omit<CreateNotificationInput, 'userId' | 'roleScope'>): void {
+export async function notifyAllAdmins(input: Omit<CreateNotificationInput, 'userId' | 'roleScope'>): Promise<void> {
   const db = getDb();
-  const admins = db
-    .prepare("SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'")
-    .all() as { id: number }[];
+  const admins = await db.all<{ id: number }>(
+    "SELECT id FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE'"
+  );
   for (const admin of admins) {
-    createNotification({
+    await createNotification({
       ...input,
       userId: admin.id,
       roleScope: 'ADMIN',

@@ -160,7 +160,7 @@ export function RetailerDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12">
           <div className="lg:col-span-4 h-56 lg:h-auto bg-[#06265B] relative">
             <img
-              src={retailer.cover_image_url || '/images/retailer-depot.jpg'}
+              src={retailer.cover_image_url || '/images/depot-ewet.jpg'}
               alt={retailer.business_name}
               className="w-full h-full object-cover"
             />

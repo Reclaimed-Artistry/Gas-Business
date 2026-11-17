@@ -11,8 +11,9 @@ export function Footer() {
           <div className="space-y-4">
             <BrandLogo inverted />
             <p className="text-xs text-[#EAF3FF]/80 leading-relaxed">
-              Nigeria’s centrally verified cooking gas marketplace and managed LPG delivery network. Every listed
-              retailer is vetted, monitored, and price-verified by BlueFlame Operations.
+              Uyo’s centrally verified cooking gas marketplace and managed LPG delivery network in Akwa Ibom State.
+              Every listed depot is vetted, monitored, and price-verified by BlueFlame Operations — built to expand
+              across Akwa Ibom and neighbouring states.
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#073B8C] border border-white/15 text-xs font-semibold text-[#EAF3FF]">
               <Lock className="w-3.5 h-3.5" />
@@ -49,10 +50,12 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-white mb-3">Active Coverage</h4>
             <ul className="space-y-2 text-xs text-[#EAF3FF]/80">
-              <li>Lagos Island — Lekki, VI, Ikoyi, Ajah</li>
-              <li>Lagos Mainland — Ikeja, Yaba, Surulere, Gbagada</li>
-              <li>FCT Abuja — Wuse II, Maitama, Garki, Utako</li>
-              <li className="text-[#EAF3FF]/60 pt-1">Expanding to Port Harcourt, Ibadan & Kano</li>
+              <li>Uyo Central — Ewet Housing, Oron Rd, Udo Udoma</li>
+              <li>Uyo South — Shelter Afrique, Osongama, Aka Rd</li>
+              <li>Uyo North & East — Ikot Ekpene Rd, UNIUYO, Nwaniba, Abak Rd</li>
+              <li className="text-[#EAF3FF]/60 pt-1">
+                Currently serving Uyo, Akwa Ibom · Expanding next to Eket, Ikot Ekpene &amp; Calabar
+              </li>
             </ul>
           </div>
 
