@@ -31,7 +31,7 @@ export function RetailerMap({
 }: RetailerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
-  const lastLocationRef = useRef({ lat: customerLocation.lat, lng: customerLocation.lng });
+  const lastLocationRef = useRef({ lat: customerLocation.lat, lng: customerLocation.lng, capturedAt: customerLocation.capturedAt });
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const customerLayerRef = useRef<L.LayerGroup | null>(null);
   const coverageLayerRef = useRef<L.LayerGroup | null>(null);
@@ -45,7 +45,7 @@ export function RetailerMap({
 
     const map = L.map(containerRef.current, {
       center: [customerLocation.lat, customerLocation.lng],
-      zoom: 12,
+      zoom: customerLocation.source === 'gps' ? 16 : 12,
       zoomControl: true,
       scrollWheelZoom: true,
     });
@@ -86,10 +86,10 @@ export function RetailerMap({
   useEffect(() => {
     const map = mapRef.current;
     const last = lastLocationRef.current;
-    if (!map || (last.lat === customerLocation.lat && last.lng === customerLocation.lng)) return;
-    lastLocationRef.current = { lat: customerLocation.lat, lng: customerLocation.lng };
+    if (!map || (last.lat === customerLocation.lat && last.lng === customerLocation.lng && last.capturedAt === customerLocation.capturedAt)) return;
+    lastLocationRef.current = { lat: customerLocation.lat, lng: customerLocation.lng, capturedAt: customerLocation.capturedAt };
     map.setView([customerLocation.lat, customerLocation.lng], customerLocation.source === 'gps' ? 16 : Math.max(map.getZoom(), 14), { animate: true });
-  }, [customerLocation.lat, customerLocation.lng, customerLocation.source]);
+  }, [customerLocation.lat, customerLocation.lng, customerLocation.source, customerLocation.capturedAt]);
 
   // Render customer delivery location pin
   useEffect(() => {
