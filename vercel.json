@@ -9,6 +9,14 @@
       "maxDuration": 30
     }
   },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "blueflame-gas.vercel.app" }],
+      "destination": "https://gasflo.vercel.app/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/((?!api/|assets/|images/|favicon).*)", "destination": "/index.html" }
