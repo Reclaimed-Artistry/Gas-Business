@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [oauthLoading, setOauthLoading] = useState(false);
+  const callbackRef = useRef(Boolean(new URLSearchParams(window.location.search).get('code') || new URLSearchParams(window.location.hash.slice(1)).get('access_token') || new URLSearchParams(window.location.hash.slice(1)).get('error')));
+  const [oauthLoading, setOauthLoading] = useState(callbackRef.current);
   const [oauthError, setOauthError] = useState<string | null>(null);
   const [googleAuthAvailable, setGoogleAuthAvailable] = useState(isSupabaseClientConfigured());
   const exchangingRef = useRef(false);
@@ -75,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
           body: { accessToken },
         });
+        callbackRef.current = false;
         setStoredToken(res.token);
         setUser(res.user);
         setWalletBalanceKobo(res.walletBalanceKobo ?? 0);
@@ -142,38 +144,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   }, []);
 
-  // Load existing BlueFlame JWT session + listen for Supabase Google OAuth redirects
+  // Supabase handles the PKCE callback during client initialization. Do not let
+  // an existing BlueFlame session redirect away before this exchange completes.
   useEffect(() => {
-    void refreshAuth();
+    const isCallback = callbackRef.current;
+    if (!isCallback) void refreshAuth();
+    else setLoading(false);
 
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) return;
-
-    const isOAuthCallbackUrl =
-      window.location.search.includes('code=') || window.location.hash.includes('access_token=');
-    if (isOAuthCallbackUrl) {
-      setOauthLoading(true);
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const oauthFailure = hash.get('error_description') || hash.get('error');
+    if (oauthFailure) {
+      setOauthError(`Google sign-in failed: ${oauthFailure}`);
+      setOauthLoading(false);
+      callbackRef.current = false;
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
     }
 
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      if (isCallback) {
+        setOauthError('Google sign-in is not configured in this environment.');
+        setOauthLoading(false);
+      }
+      return;
+    }
+    const shouldExchange = () => isCallback || !getStoredToken();
     const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.access_token && !getStoredToken()) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.access_token && shouldExchange()) {
         void exchangeSupabaseToken(session.access_token);
       }
     });
-
-    // Also inspect current session right away in case PKCE already resolved
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.access_token && !getStoredToken()) {
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (data.session?.access_token && shouldExchange()) {
         void exchangeSupabaseToken(data.session.access_token);
-      } else if (isOAuthCallbackUrl && !data.session) {
-        // Give PKCE a moment before clearing loading state
-        setTimeout(() => setOauthLoading(false), 2500);
+      } else if (isCallback && !data.session && !exchangingRef.current) {
+        setOauthError(error?.message || 'Google sign-in could not be completed. Please try again in the same browser.');
+        setOauthLoading(false);
+        callbackRef.current = false;
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }).catch(() => {
+      if (isCallback) {
+        setOauthError('Could not complete Google sign-in. Please try again.');
+        setOauthLoading(false);
       }
     });
-
-    return () => {
-      subscription.subscription.unsubscribe();
-    };
+    return () => subscription.subscription.unsubscribe();
   }, [refreshAuth, exchangeSupabaseToken]);
 
   useEffect(() => {
