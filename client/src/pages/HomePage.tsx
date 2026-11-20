@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   MapPin,
@@ -69,6 +69,7 @@ export function HomePage() {
   const { location, setLocation, setCoordinates, detectGpsLocation, locating } = useLocationContext();
   const navigate = useNavigate();
 
+  const pageRef = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<HomepageData | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRetailerId, setSelectedRetailerId] = useState<number | null>(null);
@@ -93,6 +94,34 @@ export function HomePage() {
     };
   }, [location.lat, location.lng, location.neighbourhood, location.city]);
 
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const elements = Array.from(page.querySelectorAll<HTMLElement>('[data-scroll-reveal]:not([data-revealed])'));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        const element = target as HTMLElement;
+        element.classList.remove('scroll-reveal-pending');
+        element.setAttribute('data-revealed', 'true');
+        observer.unobserve(element);
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -30px 0px' });
+    elements.forEach((element) => {
+      // Never hide content already in view, including on reload or back navigation.
+      if (element.getBoundingClientRect().top < window.innerHeight) {
+        element.setAttribute('data-revealed', 'true');
+      } else {
+        element.classList.add('scroll-reveal-pending');
+        observer.observe(element);
+      }
+    });
+    return () => {
+      observer.disconnect();
+      elements.forEach((element) => element.classList.remove('scroll-reveal-pending'));
+    };
+  }, [data]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const qs = new URLSearchParams();
@@ -109,7 +138,7 @@ export function HomePage() {
   const coveringCount = data?.retailers.filter((r) => r.coverage.canDeliver).length ?? 0;
 
   return (
-    <div className="bg-[#F8F9F7]">
+    <div ref={pageRef} className="bg-[#F8F9F7]">
       {/* Hero Section */}
       <section className="bg-[#F7F8F3] border-b border-[#E5E9E1]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
@@ -232,7 +261,7 @@ export function HomePage() {
       {/* Simple service overview, inspired by the reference's approachable layout. */}
       <section className="bg-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-end mb-10">
+          <div data-scroll-reveal className="grid gap-8 lg:grid-cols-12 lg:items-end mb-10">
             <div className="lg:col-span-7"><span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#55916A]">A simpler way to refill</span><h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl leading-tight font-extrabold tracking-tight text-[#163A2C]">Less searching.<br />More time for life.</h2></div>
             <p className="lg:col-span-5 text-sm sm:text-base leading-relaxed text-[#6B7970]">Gasflo helps you explore retailers around you, check coverage and compare gas prices without the guesswork.</p>
           </div>
@@ -241,7 +270,7 @@ export function HomePage() {
               { icon: MapPin, title: 'Find your location', text: 'Use your device location or select a point on the map to check nearby retailers.' },
               { icon: Scale, title: 'Compare with confidence', text: 'Browse available gas products and compare retailer prices in one place.' },
               { icon: Truck, title: 'Keep track of delivery', text: 'Follow delivery progress and dispatcher location when tracking is available.' },
-            ].map((card, index) => <div key={card.title} className="rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
+            ].map((card, index) => <div key={card.title} data-scroll-reveal className="rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
               <div className="flex items-center justify-between"><span className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-[#39754B]"><card.icon className="w-5 h-5" /></span><span className="text-xs font-bold text-[#9BAEA0]">0{index + 1}</span></div>
               <h3 className="mt-7 text-lg font-extrabold text-[#173E30]">{card.title}</h3><p className="mt-2 text-sm leading-relaxed text-[#67786B]">{card.text}</p>
             </div>)}
@@ -251,7 +280,7 @@ export function HomePage() {
 
       {/* Interactive Map Preview — Explore Nearby Retailers */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div data-scroll-reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">
               Location-Based Discovery
@@ -352,9 +381,9 @@ export function HomePage() {
       </section>
 
       {/* Popular Gas Quantities & Accessories */}
-      <section id="how-it-works" className="bg-white border-y border-[#E2E8F0] py-16 scroll-mt-20">
+      <section className="bg-white border-y border-[#E2E8F0] py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div data-scroll-reveal className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">
                 Transparent Price Ranges
@@ -423,7 +452,7 @@ export function HomePage() {
 
       {/* Featured Approved Retailers */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-6">
+        <div data-scroll-reveal className="mb-6">
           <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">
             Operations-Approved Supply Partners
           </span>
@@ -434,6 +463,7 @@ export function HomePage() {
           {(data?.featuredRetailers || []).map((r) => (
             <div
               key={r.id}
+              data-scroll-reveal
               className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex flex-col hover:border-[#1769C2] transition-colors"
             >
               <div className="relative h-36 bg-[#06265B]">
@@ -499,7 +529,7 @@ export function HomePage() {
       {/* How It Works */}
       <section id="how-it-works" className="bg-white border-y border-[#E2E8F0] py-16 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-9">
+          <div data-scroll-reveal className="text-center max-w-2xl mx-auto mb-9">
             <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">How Gasflo Works</span>
             <h2 className="text-2xl font-extrabold text-[#06265B] mt-1">
               Engineered for Transparent Pricing & Safe Doorstep Delivery
@@ -533,7 +563,7 @@ export function HomePage() {
                 desc: 'Follow delivery milestones and live map progress until arrival, then share your 4-digit delivery confirmation PIN.',
               },
             ].map((item) => (
-              <div key={item.step} className="bg-[#F7F9FC] border border-[#E2E8F0] rounded-xl p-5 space-y-3">
+              <div key={item.step} data-scroll-reveal className="bg-[#F7F9FC] border border-[#E2E8F0] rounded-xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="w-10 h-10 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-[#073B8C] flex items-center justify-center">
                     <item.icon className="w-5 h-5" />
@@ -557,7 +587,7 @@ export function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {data.cms.testimonials.map((t, idx) => (
-              <div key={idx} className="bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between">
+              <div key={idx} data-scroll-reveal className="bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-0.5 mb-3">
                     {Array.from({ length: t.rating }).map((_, i) => (
@@ -580,7 +610,7 @@ export function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7 space-y-3">
-            <div className="mb-4">
+            <div data-scroll-reveal className="mb-4">
               <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">Help Centre</span>
               <h2 className="text-2xl font-extrabold text-[#06265B] mt-1">Frequently Asked Questions</h2>
             </div>
