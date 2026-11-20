@@ -137,125 +137,73 @@ export function HomePage() {
 
   return (
     <div ref={pageRef} className="bg-[#F8F9F7] overflow-x-clip">
-      {/* Hero Section */}
-      <section className="bg-[#F7F8F3] border-b border-[#E5E9E1]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#E4EDE1] px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#31583C]">
-                <span className="w-2 h-2 rounded-full bg-[#53A05D]" /> Gas delivery, made simpler
-              </div>
-
-              <h1 className="max-w-[720px] text-[42px] sm:text-5xl lg:text-[64px] font-extrabold text-[#102D25] leading-[1.06] tracking-[-0.045em]">
-                Your cooking gas, <span className="text-[#39754B]">closer to home.</span>
-              </h1>
-              <p className="text-base sm:text-lg text-[#5A6B62] leading-relaxed max-w-xl">
-                Find nearby gas retailers, compare prices and explore delivery coverage in Uyo—all in one place.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Link to="/order" className="inline-flex items-center justify-center rounded-full bg-[#173E30] px-7 py-3.5 text-sm font-bold text-white hover:bg-[#285B43] transition-colors">
-                  Order now
-                </Link>
-                <Link to="/explore" className="inline-flex items-center justify-center gap-2 rounded-full border border-[#C7D5C8] px-7 py-3.5 text-sm font-bold text-[#173E30] hover:bg-white transition-colors">
-                  Explore retailers <ArrowRight className="w-4 h-4" />
-                </Link>
-                <a href="#how-it-works" className="inline-flex items-center justify-center rounded-full border border-[#C7D5C8] px-7 py-3.5 text-sm font-bold text-[#173E30] hover:bg-white transition-colors">How it works</a>
-              </div>
-              <p id="ordering-status" className="text-xs text-[#76551F] font-medium">Online ordering and wallet funding are temporarily unavailable. You can still explore retailers and compare prices.</p>
-
-              {/* Prominent Location Selector & Search Bar */}
-              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 space-y-3 shadow-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                  <div className="sm:col-span-7">
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1">
-                      Your Delivery Area
-                    </label>
-                    <div className="relative">
-                      <MapPin className="w-4 h-4 text-[#073B8C] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                      <select
-                        value={
-                          NIGERIAN_PRESET_LOCATIONS.some((p) => p.label === location.label)
-                            ? location.label
-                            : '__custom__'
-                        }
-                        onChange={(e) => {
-                          const found = NIGERIAN_PRESET_LOCATIONS.find((p) => p.label === e.target.value);
-                          if (found) setLocation(found);
-                        }}
-                        className="w-full pl-9 pr-3 py-2.5 text-sm font-semibold text-[#06265B] bg-white border border-[#E2E8F0] rounded-lg focus:outline-none focus:border-[#073B8C]"
-                      >
-                        {!NIGERIAN_PRESET_LOCATIONS.some((p) => p.label === location.label) && (
-                          <option value="__custom__">{location.label}</option>
-                        )}
-                        {NIGERIAN_PRESET_LOCATIONS.map((loc) => (
-                          <option key={loc.label} value={loc.label}>
-                            {loc.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="sm:col-span-5 flex items-end">
-                    <button
-                      type="button"
-                      onClick={() => void handleGps()}
-                      disabled={locating}
-                      className="w-full py-2.5 px-3 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-[#073B8C] hover:bg-[#dbeafe] text-xs font-bold inline-flex items-center justify-center gap-1.5 transition-colors"
-                    >
-                      <LocateFixed className="w-4 h-4" />
-                      {locating ? 'Locating GPS...' : 'Use My Current GPS'}
-                    </button>
-                  </div>
+      {/* Hero: clear next steps and location tools without hiding service limitations. */}
+      <section className="bg-[#F3F6EF] border-b border-[#DCE7DC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-10 sm:pb-14">
+          <div className="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] bg-[#123C30] text-white">
+            <div className="grid lg:grid-cols-2">
+              <div className="relative z-10 px-6 sm:px-10 lg:px-12 xl:px-16 pt-10 pb-9 sm:pt-14 sm:pb-12 lg:py-16 xl:py-20 flex flex-col justify-center">
+                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#D3EAD2]">
+                  <span className="h-2 w-2 rounded-full bg-[#A8D992]" /> Cooking gas, made simpler
                 </div>
-
-                <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2.5">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search gas size (e.g. 12.5kg, 6kg, regulator) or retailer name..."
-                      className="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-[#E2E8F0] rounded-lg text-[#172B4D] placeholder:text-[#64748B] focus:outline-none focus:border-[#073B8C]"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-[#073B8C] hover:bg-[#06265B] text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors shrink-0"
-                  >
-                    Find Retailers
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B] pt-0.5">
-                  <span>
-                    <strong className="text-[#073B8C]">{coveringCount}</strong> verified retailer
-                    {coveringCount === 1 ? '' : 's'} currently delivering to{' '}
-                    <strong className="text-[#172B4D]">{location.neighbourhood}</strong>
-                  </span>
-                  {gpsStatus && <span className="text-[#1769C2] font-medium">{gpsStatus}</span>}
+                <h1 className="mt-6 max-w-xl text-[42px] sm:text-[56px] xl:text-[68px] leading-[1.02] font-extrabold tracking-[-0.045em] text-white">
+                  More cooking.<br /><span className="text-[#B8DE9B]">Less searching.</span>
+                </h1>
+                <p className="mt-5 max-w-md text-[15px] sm:text-base leading-relaxed text-[#DBE9DF]">
+                  Find cooking gas near you, compare local retailers and choose the refill that fits your home.
+                </p>
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <Link to="/order" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#D5F0AE] px-6 sm:px-7 py-3 text-sm font-extrabold text-[#15392B] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors">
+                    Order now <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link to="/explore" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors">Explore retailers</Link>
+                </div>
+                <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-[#D5E7D8]">
+                  <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#B8DE9B]" /> Find nearby</span>
+                  <span className="inline-flex items-center gap-1.5"><Scale className="w-4 h-4 text-[#B8DE9B]" /> Compare prices</span>
+                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#B8DE9B]" /> Approved retailers</span>
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-[#536B5B]">
-                <span className="inline-flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#39754B]" /> Verified retailers</span>
-                <span className="inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-[#39754B]" /> Local coverage</span>
-                <span className="inline-flex items-center gap-2"><Scale className="w-4 h-4 text-[#39754B]" /> Compare prices</span>
-              </div>
-            </div>
-
-            {/* Illustrative image; the marketplace remains the source of retailer details. */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative overflow-hidden rounded-[2rem] bg-[#DDE8DB] shadow-xl shadow-[#1C3D2C]/10">
-                <img src="/images/gasflo-delivery-hero.jpg" alt="Illustration of a cooking gas delivery at a home" className="w-full h-[340px] sm:h-[460px] lg:h-[610px] object-cover object-[68%_center]" />
-                <div className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 backdrop-blur-sm px-5 py-4 flex items-center gap-3 shadow-lg">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8F2E7] text-[#39754B]"><MapPin className="w-5 h-5" /></div>
-                  <div><p className="text-sm font-extrabold text-[#173E30]">Made for your neighbourhood</p><p className="text-xs text-[#64746B] mt-0.5">Find gas retailers near your location</p></div>
+              <div className="relative min-h-[265px] sm:min-h-[360px] lg:min-h-[510px]">
+                <img src="/images/gasflo-delivery-hero.jpg" alt="Illustration of cooking gas being delivered to a home" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[72%_center]" />
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#123C30]/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#123C30]/40 lg:via-transparent lg:to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5 sm:bottom-7 sm:left-7 sm:right-auto sm:max-w-[280px] rounded-2xl bg-white px-4 py-3.5 text-[#173E30] shadow-lg flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF4E4] text-[#39754B]"><MapPin className="w-5 h-5" /></div>
+                  <div><p className="text-sm font-extrabold">Gas, closer to home</p><p className="text-xs text-[#64746B] mt-0.5">Explore retailers around Uyo</p></div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="mt-5 sm:mt-6 rounded-2xl border border-[#DCE7DC] bg-white p-5 sm:p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
+              <div><h2 className="text-lg font-extrabold text-[#173E30]">Find gas near you</h2><p className="text-xs sm:text-sm text-[#64748B] mt-1">Choose your area or use your current location.</p></div>
+              <a href="#how-it-works" className="text-xs font-bold text-[#39754B] underline underline-offset-4">How it works</a>
+            </div>
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2">
+                <div>
+                  <label htmlFor="hero-location" className="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">Delivery area</label>
+                  <div className="relative"><MapPin className="w-4 h-4 text-[#39754B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <select id="hero-location" value={NIGERIAN_PRESET_LOCATIONS.some(p => p.label === location.label) ? location.label : '__custom__'} onChange={e => { const found = NIGERIAN_PRESET_LOCATIONS.find(p => p.label === e.target.value); if (found) setLocation(found); }} className="w-full pl-9 pr-3 py-3 text-sm font-semibold text-[#173E30] bg-white border border-[#D5E1D5] rounded-lg focus:outline-none focus:border-[#39754B]">
+                      {!NIGERIAN_PRESET_LOCATIONS.some(p => p.label === location.label) && <option value="__custom__">{location.label}</option>}
+                      {NIGERIAN_PRESET_LOCATIONS.map(loc => <option key={loc.label} value={loc.label}>{loc.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <button type="button" onClick={() => void handleGps()} disabled={locating} className="self-end min-h-11 px-4 py-3 rounded-lg bg-[#EAF3E8] text-[#315D39] hover:bg-[#DCECD9] disabled:opacity-60 text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors"><LocateFixed className="w-4 h-4" />{locating ? 'Finding location…' : 'Use my location'}</button>
+              </div>
+              <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1"><label htmlFor="hero-search" className="sr-only">Search by gas size or retailer</label><Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" /><input id="hero-search" type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search gas size or retailer" className="w-full pl-9 pr-3 py-3 text-sm bg-white border border-[#D5E1D5] rounded-lg text-[#172B4D] placeholder:text-[#64748B] focus:outline-none focus:border-[#39754B]" /></div>
+                <button type="submit" className="min-h-11 px-5 py-3 rounded-lg bg-[#173E30] hover:bg-[#285B43] text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors">Find retailers <ArrowRight className="w-4 h-4" /></button>
+              </form>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#64748B]">
+              <span>{data ? <><strong className="text-[#173E30]">{coveringCount}</strong> approved retailer{coveringCount === 1 ? '' : 's'} covering <strong className="text-[#173E30]">{location.neighbourhood}</strong></> : 'Checking retailer coverage…'}</span>
+              {gpsStatus && <span role="status" className="text-[#1769C2] font-medium">{gpsStatus}</span>}
+            </div>
+          </div>
+          <p className="mt-4 text-xs leading-relaxed text-[#76551F] font-medium">You can prepare an order and review checkout. Final order submission and wallet funding are temporarily unavailable.</p>
         </div>
       </section>
 
