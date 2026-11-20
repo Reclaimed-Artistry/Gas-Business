@@ -136,70 +136,70 @@ export function HomePage() {
   const coveringCount = data?.retailers.filter((r) => r.coverage.canDeliver).length ?? 0;
 
   return (
-    <div ref={pageRef} className="bg-[#F8F9F7] overflow-x-clip">
+    <div ref={pageRef} className="bg-[#F7F9FC] overflow-x-clip">
       {/* Hero: clear next steps and location tools without hiding service limitations. */}
-      <section className="bg-[#F3F6EF] border-b border-[#DCE7DC]">
+      <section className="bg-[#F1F6FC] border-b border-[#D8E5F4]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-8 pb-10 sm:pb-14">
-          <div className="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] bg-[#123C30] text-white">
+          <div className="relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.5rem] bg-[#06265B] text-white">
             <div className="grid lg:grid-cols-2">
               <div className="relative z-10 px-6 sm:px-10 lg:px-12 xl:px-16 pt-10 pb-9 sm:pt-14 sm:pb-12 lg:py-16 xl:py-20 flex flex-col justify-center">
-                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#D3EAD2]">
-                  <span className="h-2 w-2 rounded-full bg-[#A8D992]" /> Cooking gas, made simpler
+                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] text-[#D9EDFF]">
+                  <span className="h-2 w-2 rounded-full bg-[#77C7FF]" /> Cooking gas, made simpler
                 </div>
                 <h1 className="mt-6 max-w-xl text-[42px] sm:text-[56px] xl:text-[68px] leading-[1.02] font-extrabold tracking-[-0.045em] text-white">
-                  More cooking.<br /><span className="text-[#B8DE9B]">Less searching.</span>
+                  More cooking.<br /><span className="text-[#9ED9FF]">Less searching.</span>
                 </h1>
-                <p className="mt-5 max-w-md text-[15px] sm:text-base leading-relaxed text-[#DBE9DF]">
+                <p className="mt-5 max-w-md text-[15px] sm:text-base leading-relaxed text-[#E0EDFA]">
                   Find cooking gas near you, compare local retailers and choose the refill that fits your home.
                 </p>
                 <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <Link to="/order" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#D5F0AE] px-6 sm:px-7 py-3 text-sm font-extrabold text-[#15392B] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors">
+                  <Link to="/order" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#C5E8FF] px-6 sm:px-7 py-3 text-sm font-extrabold text-[#06265B] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors">
                     Order now <ArrowRight className="w-4 h-4" />
                   </Link>
                   <Link to="/explore" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-bold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white transition-colors">Explore retailers</Link>
                 </div>
-                <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-[#D5E7D8]">
-                  <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#B8DE9B]" /> Find nearby</span>
-                  <span className="inline-flex items-center gap-1.5"><Scale className="w-4 h-4 text-[#B8DE9B]" /> Compare prices</span>
-                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#B8DE9B]" /> Approved retailers</span>
+                <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-[#DDEEFF]">
+                  <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-[#9ED9FF]" /> Find nearby</span>
+                  <span className="inline-flex items-center gap-1.5"><Scale className="w-4 h-4 text-[#9ED9FF]" /> Compare prices</span>
+                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-[#9ED9FF]" /> Approved retailers</span>
                 </div>
               </div>
               <div className="relative min-h-[265px] sm:min-h-[360px] lg:min-h-[510px]">
                 <img src="/images/gasflo-delivery-hero.jpg" alt="Illustration of cooking gas being delivered to a home" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[72%_center]" />
-                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#123C30]/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#123C30]/40 lg:via-transparent lg:to-transparent" />
-                <div className="absolute bottom-5 left-5 right-5 sm:bottom-7 sm:left-7 sm:right-auto sm:max-w-[280px] rounded-2xl bg-white px-4 py-3.5 text-[#173E30] shadow-lg flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF4E4] text-[#39754B]"><MapPin className="w-5 h-5" /></div>
-                  <div><p className="text-sm font-extrabold">Gas, closer to home</p><p className="text-xs text-[#64746B] mt-0.5">Explore retailers around Uyo</p></div>
+                <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#06265B]/70 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#06265B]/40 lg:via-transparent lg:to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5 sm:bottom-7 sm:left-7 sm:right-auto sm:max-w-[280px] rounded-2xl bg-white px-4 py-3.5 text-[#073B8C] shadow-lg flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF3FF] text-[#1769C2]"><MapPin className="w-5 h-5" /></div>
+                  <div><p className="text-sm font-extrabold">Gas, closer to home</p><p className="text-xs text-[#64748B] mt-0.5">Explore retailers around Uyo</p></div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 sm:mt-6 rounded-2xl border border-[#DCE7DC] bg-white p-5 sm:p-6 shadow-sm">
+          <div className="mt-5 sm:mt-6 rounded-2xl border border-[#D8E5F4] bg-white p-5 sm:p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
-              <div><h2 className="text-lg font-extrabold text-[#173E30]">Find gas near you</h2><p className="text-xs sm:text-sm text-[#64748B] mt-1">Choose your area or use your current location.</p></div>
-              <a href="#how-it-works" className="text-xs font-bold text-[#39754B] underline underline-offset-4">How it works</a>
+              <div><h2 className="text-lg font-extrabold text-[#073B8C]">Find gas near you</h2><p className="text-xs sm:text-sm text-[#64748B] mt-1">Choose your area or use your current location.</p></div>
+              <a href="#how-it-works" className="text-xs font-bold text-[#1769C2] underline underline-offset-4">How it works</a>
             </div>
             <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:items-end">
               <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-2">
                 <div>
                   <label htmlFor="hero-location" className="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1.5">Delivery area</label>
-                  <div className="relative"><MapPin className="w-4 h-4 text-[#39754B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                    <select id="hero-location" value={NIGERIAN_PRESET_LOCATIONS.some(p => p.label === location.label) ? location.label : '__custom__'} onChange={e => { const found = NIGERIAN_PRESET_LOCATIONS.find(p => p.label === e.target.value); if (found) setLocation(found); }} className="w-full pl-9 pr-3 py-3 text-sm font-semibold text-[#173E30] bg-white border border-[#D5E1D5] rounded-lg focus:outline-none focus:border-[#39754B]">
+                  <div className="relative"><MapPin className="w-4 h-4 text-[#1769C2] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <select id="hero-location" value={NIGERIAN_PRESET_LOCATIONS.some(p => p.label === location.label) ? location.label : '__custom__'} onChange={e => { const found = NIGERIAN_PRESET_LOCATIONS.find(p => p.label === e.target.value); if (found) setLocation(found); }} className="w-full pl-9 pr-3 py-3 text-sm font-semibold text-[#073B8C] bg-white border border-[#CBD9E8] rounded-lg focus:outline-none focus:border-[#1769C2]">
                       {!NIGERIAN_PRESET_LOCATIONS.some(p => p.label === location.label) && <option value="__custom__">{location.label}</option>}
                       {NIGERIAN_PRESET_LOCATIONS.map(loc => <option key={loc.label} value={loc.label}>{loc.label}</option>)}
                     </select>
                   </div>
                 </div>
-                <button type="button" onClick={() => void handleGps()} disabled={locating} className="self-end min-h-11 px-4 py-3 rounded-lg bg-[#EAF3E8] text-[#315D39] hover:bg-[#DCECD9] disabled:opacity-60 text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors"><LocateFixed className="w-4 h-4" />{locating ? 'Finding location…' : 'Use my location'}</button>
+                <button type="button" onClick={() => void handleGps()} disabled={locating} className="self-end min-h-11 px-4 py-3 rounded-lg bg-[#EAF3FF] text-[#073B8C] hover:bg-[#DBEAFE] disabled:opacity-60 text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors"><LocateFixed className="w-4 h-4" />{locating ? 'Finding location…' : 'Use my location'}</button>
               </div>
               <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1"><label htmlFor="hero-search" className="sr-only">Search by gas size or retailer</label><Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" /><input id="hero-search" type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search gas size or retailer" className="w-full pl-9 pr-3 py-3 text-sm bg-white border border-[#D5E1D5] rounded-lg text-[#172B4D] placeholder:text-[#64748B] focus:outline-none focus:border-[#39754B]" /></div>
-                <button type="submit" className="min-h-11 px-5 py-3 rounded-lg bg-[#173E30] hover:bg-[#285B43] text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors">Find retailers <ArrowRight className="w-4 h-4" /></button>
+                <div className="relative flex-1"><label htmlFor="hero-search" className="sr-only">Search by gas size or retailer</label><Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" /><input id="hero-search" type="search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search gas size or retailer" className="w-full pl-9 pr-3 py-3 text-sm bg-white border border-[#CBD9E8] rounded-lg text-[#172B4D] placeholder:text-[#64748B] focus:outline-none focus:border-[#1769C2]" /></div>
+                <button type="submit" className="min-h-11 px-5 py-3 rounded-lg bg-[#073B8C] hover:bg-[#1769C2] text-white text-sm font-bold inline-flex items-center justify-center gap-2 transition-colors">Find retailers <ArrowRight className="w-4 h-4" /></button>
               </form>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#64748B]">
-              <span>{data ? <><strong className="text-[#173E30]">{coveringCount}</strong> approved retailer{coveringCount === 1 ? '' : 's'} covering <strong className="text-[#173E30]">{location.neighbourhood}</strong></> : 'Checking retailer coverage…'}</span>
+              <span>{data ? <><strong className="text-[#073B8C]">{coveringCount}</strong> approved retailer{coveringCount === 1 ? '' : 's'} covering <strong className="text-[#073B8C]">{location.neighbourhood}</strong></> : 'Checking retailer coverage…'}</span>
               {gpsStatus && <span role="status" className="text-[#1769C2] font-medium">{gpsStatus}</span>}
             </div>
           </div>
@@ -211,17 +211,17 @@ export function HomePage() {
       <section className="bg-white py-16 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div data-scroll-reveal className="grid gap-8 lg:grid-cols-12 lg:items-end mb-10">
-            <div className="lg:col-span-7"><span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#55916A]">A simpler way to refill</span><h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl leading-tight font-extrabold tracking-tight text-[#163A2C]">Less searching.<br />More time for life.</h2></div>
-            <p className="lg:col-span-5 text-sm sm:text-base leading-relaxed text-[#6B7970]">Gasflo helps you explore retailers around you, check coverage and compare gas prices without the guesswork.</p>
+            <div className="lg:col-span-7"><span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#1769C2]">A simpler way to refill</span><h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl leading-tight font-extrabold tracking-tight text-[#06265B]">Less searching.<br />More time for life.</h2></div>
+            <p className="lg:col-span-5 text-sm sm:text-base leading-relaxed text-[#64748B]">Gasflo helps you explore retailers around you, check coverage and compare gas prices without the guesswork.</p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { icon: MapPin, title: 'Find your location', text: 'Use your device location or select a point on the map to check nearby retailers.' },
               { icon: Scale, title: 'Compare with confidence', text: 'Browse available gas products and compare retailer prices in one place.' },
               { icon: Truck, title: 'Keep track of delivery', text: 'Follow delivery progress and dispatcher location when tracking is available.' },
-            ].map((card, index) => <div key={card.title} data-scroll-reveal className="home-hover-card rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
-              <div className="flex items-center justify-between"><span className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-[#39754B]"><card.icon className="w-5 h-5" /></span><span className="text-xs font-bold text-[#9BAEA0]">0{index + 1}</span></div>
-              <h3 className="mt-7 text-lg font-extrabold text-[#173E30]">{card.title}</h3><p className="mt-2 text-sm leading-relaxed text-[#67786B]">{card.text}</p>
+            ].map((card, index) => <div key={card.title} data-scroll-reveal className="home-hover-card rounded-[1.5rem] bg-[#F2F7FD] p-7 sm:p-8 flex flex-col min-h-[210px]">
+              <div className="flex items-center justify-between"><span className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-[#1769C2]"><card.icon className="w-5 h-5" /></span><span className="text-xs font-bold text-[#8EA7C5]">0{index + 1}</span></div>
+              <h3 className="mt-7 text-lg font-extrabold text-[#073B8C]">{card.title}</h3><p className="mt-2 text-sm leading-relaxed text-[#64748B]">{card.text}</p>
             </div>)}
           </div>
         </div>
