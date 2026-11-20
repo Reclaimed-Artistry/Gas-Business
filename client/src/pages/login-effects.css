@@ -42,9 +42,7 @@
 .gas-burner { position:absolute; left: 77px; top: 112px; width: 106px; height: 18px; border-radius: 50%; background: #183947; border: 3px solid #6b8e96; z-index: 2; }
 .gas-burner-top { position:absolute; left: 10px; right: 10px; top: -9px; height: 12px; border-radius: 50%; background: #172c35; border: 2px solid #89a8ae; }
 .gas-burner-ring { position:absolute; left: 19px; right: 19px; top: 0; height: 3px; border-radius: 50%; background: #8ad9f4; }
-.gas-flame { position: absolute; opacity: 0; transition: opacity .5s ease, transform .5s ease; transform-origin: bottom center; transform: scale(.7); }
-.gas-flame-outer { left: 94px; top: 24px; width: 72px; height: 89px; background: linear-gradient(to top,#1e7fe3,#6fe6ff 70%,#d4f8ff); border-radius: 75% 15% 65% 45%; rotate: -45deg; box-shadow: 0 0 32px rgba(65,190,255,.55); }
-.gas-flame-inner { position: absolute; width: 32px; height: 46px; bottom: 6px; left: 21px; background: #e9fbff; border-radius: 75% 15% 65% 45%; }
+.gas-flame { position: absolute; left: 50%; margin-left: -36px; top: 20px; width: 72px; height: 89px; opacity: 0; filter: drop-shadow(0 0 16px rgba(65,190,255,.55)); transition: opacity .5s ease, transform .5s ease; transform-origin: bottom center; transform: scale(.7); }
 .gas-login--lit .gas-flame { opacity: 1; transform: scale(1); }
 .gas-ignite { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #77cbe2; border-radius: 999px; padding: 11px 18px; color: #e1faff; background: #123f50; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, border-color .2s; }
 .gas-ignite:hover { background: #1a596c; border-color: #c0f3ff; }

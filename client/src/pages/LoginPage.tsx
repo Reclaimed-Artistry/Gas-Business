@@ -120,7 +120,10 @@ export function LoginPage() {
           </div>
           <div className="gas-art" aria-hidden="true">
             <div className="gas-art-glow" />
-            <div className="gas-flame gas-flame-outer"><div className="gas-flame-inner" /></div>
+            <svg className="gas-flame" viewBox="0 0 72 89" aria-hidden="true">
+              <path d="M36 2 C32 18 8 36 8 58 C8 76 20 87 36 87 C52 87 64 76 64 58 C64 36 40 18 36 2Z" fill="#68dbff" />
+              <path d="M36 38 C32 49 22 59 22 70 C22 80 28 86 36 86 C44 86 50 80 50 70 C50 59 40 49 36 38Z" fill="#e9fbff" />
+            </svg>
             <div className="gas-burner"><div className="gas-burner-top" /><div className="gas-burner-ring" /></div>
             <div className="gas-cylinder-neck" />
             <div className="gas-cylinder">
