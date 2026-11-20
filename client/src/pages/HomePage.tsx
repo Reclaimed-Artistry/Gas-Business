@@ -97,24 +97,21 @@ export function HomePage() {
   useEffect(() => {
     const page = pageRef.current;
     if (!page || !('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const elements = Array.from(page.querySelectorAll<HTMLElement>('[data-scroll-reveal]:not([data-revealed])'));
+    const elements = Array.from(page.querySelectorAll<HTMLElement>('[data-scroll-reveal]'));
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        const element = target as HTMLElement;
-        element.classList.remove('scroll-reveal-pending');
-        element.setAttribute('data-revealed', 'true');
-        observer.unobserve(element);
+        // Reset only once the element has completely left the viewport, so it
+        // can reveal again when scrolling in either direction.
+        target.classList.toggle('scroll-reveal-pending', !isIntersecting);
       });
-    }, { threshold: 0, rootMargin: '0px 0px -30px 0px' });
+    }, { threshold: 0 });
     elements.forEach((element) => {
-      // Never hide content already in view, including on reload or back navigation.
-      if (element.getBoundingClientRect().top < window.innerHeight) {
-        element.setAttribute('data-revealed', 'true');
-      } else {
+      const bounds = element.getBoundingClientRect();
+      // Keep content already on screen visible on reload or back navigation.
+      if (bounds.top >= window.innerHeight || bounds.bottom <= 0) {
         element.classList.add('scroll-reveal-pending');
-        observer.observe(element);
       }
+      observer.observe(element);
     });
     return () => {
       observer.disconnect();
@@ -270,7 +267,7 @@ export function HomePage() {
               { icon: MapPin, title: 'Find your location', text: 'Use your device location or select a point on the map to check nearby retailers.' },
               { icon: Scale, title: 'Compare with confidence', text: 'Browse available gas products and compare retailer prices in one place.' },
               { icon: Truck, title: 'Keep track of delivery', text: 'Follow delivery progress and dispatcher location when tracking is available.' },
-            ].map((card, index) => <div key={card.title} data-scroll-reveal className="rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
+            ].map((card, index) => <div key={card.title} data-scroll-reveal className="home-hover-card rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
               <div className="flex items-center justify-between"><span className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-[#39754B]"><card.icon className="w-5 h-5" /></span><span className="text-xs font-bold text-[#9BAEA0]">0{index + 1}</span></div>
               <h3 className="mt-7 text-lg font-extrabold text-[#173E30]">{card.title}</h3><p className="mt-2 text-sm leading-relaxed text-[#67786B]">{card.text}</p>
             </div>)}
@@ -416,7 +413,7 @@ export function HomePage() {
                       ? `/explore?view=compare&sizeKg=${prod.size_kg}`
                       : `/explore?q=${encodeURIComponent(prod.name)}`
                   }
-                  className="group bg-[#F7F9FC] border border-[#E2E8F0] hover:border-[#1769C2] rounded-xl overflow-hidden transition-colors flex flex-col"
+                  className="home-hover-card group bg-[#F7F9FC] border border-[#E2E8F0] hover:border-[#1769C2] rounded-xl overflow-hidden transition-colors flex flex-col"
                 >
                   <div className="h-40 bg-white flex items-center justify-center border-b border-[#E2E8F0] overflow-hidden">
                     <img
@@ -464,7 +461,7 @@ export function HomePage() {
             <div
               key={r.id}
               data-scroll-reveal
-              className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex flex-col hover:border-[#1769C2] transition-colors"
+              className="home-hover-card bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex flex-col hover:border-[#1769C2] transition-colors"
             >
               <div className="relative h-36 bg-[#06265B]">
                 <img
@@ -563,7 +560,7 @@ export function HomePage() {
                 desc: 'Follow delivery milestones and live map progress until arrival, then share your 4-digit delivery confirmation PIN.',
               },
             ].map((item) => (
-              <div key={item.step} data-scroll-reveal className="bg-[#F7F9FC] border border-[#E2E8F0] rounded-xl p-5 space-y-3">
+              <div key={item.step} data-scroll-reveal className="home-hover-card bg-[#F7F9FC] border border-[#E2E8F0] rounded-xl p-5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="w-10 h-10 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-[#073B8C] flex items-center justify-center">
                     <item.icon className="w-5 h-5" />
@@ -587,7 +584,7 @@ export function HomePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {data.cms.testimonials.map((t, idx) => (
-              <div key={idx} data-scroll-reveal className="bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between">
+              <div key={idx} data-scroll-reveal className="home-hover-card bg-white border border-[#E2E8F0] rounded-xl p-5 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-0.5 mb-3">
                     {Array.from({ length: t.rating }).map((_, i) => (
@@ -621,7 +618,8 @@ export function HomePage() {
                   <button
                     type="button"
                     onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-[#F7F9FC] transition-colors"
+                    aria-expanded={isOpen}
                   >
                     <span className="text-sm font-bold text-[#06265B]">{faq.question}</span>
                     {isOpen ? (

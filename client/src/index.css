@@ -96,3 +96,22 @@
   [data-scroll-reveal]:nth-child(3) { transition-delay: 160ms; }
   [data-scroll-reveal]:nth-child(4) { transition-delay: 240ms; }
 }
+
+/* Subtle feedback without layout shifts; touch devices don't need hover states. */
+@media (hover: hover) and (pointer: fine) {
+  .home-hover-card:hover {
+    box-shadow: 0 8px 24px rgba(6, 38, 91, 0.10);
+  }
+}
+.home-hover-card {
+  transition-property: opacity, transform, box-shadow, border-color;
+  transition-duration: 650ms, 650ms, 180ms, 180ms;
+  transition-timing-function: ease-out;
+}
+.home-hover-card:focus-visible {
+  outline: 3px solid #1769C2;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hover-card { transition: none; }
+}
