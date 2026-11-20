@@ -109,38 +109,32 @@ export function HomePage() {
   const coveringCount = data?.retailers.filter((r) => r.coverage.canDeliver).length ?? 0;
 
   return (
-    <div className="bg-[#F7F9FC]">
-      {/* Top Announcement Bar */}
-      {data?.cms?.announcementBanner && (
-        <div className="bg-[#06265B] text-[#EAF3FF] text-xs py-2 px-4 text-center font-medium border-b border-[#073B8C]">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#EAF3FF] shrink-0" />
-            <span>{data.cms.announcementBanner}</span>
-          </div>
-        </div>
-      )}
-
+    <div className="bg-[#F8F9F7]">
       {/* Hero Section */}
-      <section className="bg-white border-b border-[#E2E8F0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+      <section className="bg-[#F7F8F3] border-b border-[#E5E9E1]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#EAF3FF] border border-[#BFDBFE] text-[#073B8C] text-xs font-bold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Live Across Uyo, Akwa Ibom · Verified LPG Depots · Strictly Cashless
+              <div className="inline-flex items-center gap-2 rounded-full bg-[#E4EDE1] px-4 py-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#31583C]">
+                <span className="w-2 h-2 rounded-full bg-[#53A05D]" /> Gas delivery, made simpler
               </div>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#06265B] leading-[1.15]">
-                {data?.cms?.heroTitle || 'Fast, Verified Cooking Gas Delivery Across Uyo, Akwa Ibom.'}
+              <h1 className="max-w-[720px] text-[42px] sm:text-5xl lg:text-[64px] font-extrabold text-[#102D25] leading-[1.06] tracking-[-0.045em]">
+                Your cooking gas, <span className="text-[#39754B]">closer to home.</span>
               </h1>
-
-              <p className="text-sm sm:text-base text-[#64748B] leading-relaxed max-w-2xl">
-                {data?.cms?.heroSubtitle ||
-                  'Compare transparent cooking gas refill prices from vetted Uyo depots around Ewet Housing, Oron Road, Shelter Afrique, Ikot Ekpene Road, Abak Road & Nwaniba. Pay cashlessly and track your dispatcher live — ready to expand across Akwa Ibom.'}
+              <p className="text-base sm:text-lg text-[#5A6B62] leading-relaxed max-w-xl">
+                Find nearby gas retailers, compare prices and explore delivery coverage in Uyo—all in one place.
               </p>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/explore" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#173E30] px-7 py-3.5 text-sm font-bold text-white hover:bg-[#285B43] transition-colors">
+                  Explore retailers <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a href="#how-it-works" className="inline-flex items-center justify-center rounded-full border border-[#C7D5C8] px-7 py-3.5 text-sm font-bold text-[#173E30] hover:bg-white transition-colors">How it works</a>
+              </div>
+              <p className="text-xs text-[#76551F] font-medium">Online ordering and wallet funding are temporarily unavailable.</p>
 
               {/* Prominent Location Selector & Search Bar */}
-              <div className="bg-[#F7F9FC] border border-[#E2E8F0] rounded-xl p-4 space-y-3 shadow-xs">
+              <div className="bg-white border border-[#E2E8F0] rounded-2xl p-5 space-y-3 shadow-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
                   <div className="sm:col-span-7">
                     <label className="block text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1">
@@ -214,53 +208,43 @@ export function HomePage() {
                 </div>
               </div>
 
-              {/* Platform Trust Indicators */}
-              <div className="grid grid-cols-3 gap-4 pt-1">
-                <div className="bg-white border border-[#E2E8F0] rounded-lg p-3">
-                  <div className="text-xl font-extrabold text-[#073B8C] tabular-nums">
-                    {data?.stats?.approvedRetailers ?? 8}+
-                  </div>
-                  <div className="text-xs text-[#64748B] font-medium mt-0.5">Vetted LPG Depots</div>
-                </div>
-                <div className="bg-white border border-[#E2E8F0] rounded-lg p-3">
-                  <div className="text-xl font-extrabold text-[#073B8C] tabular-nums">
-                    ~{data?.stats?.avgDeliveryMins ?? 26} min
-                  </div>
-                  <div className="text-xs text-[#64748B] font-medium mt-0.5">Avg. Uyo Delivery</div>
-                </div>
-                <div className="bg-white border border-[#E2E8F0] rounded-lg p-3">
-                  <div className="text-xl font-extrabold text-[#16834A] tabular-nums">100%</div>
-                  <div className="text-xs text-[#64748B] font-medium mt-0.5">Cashless & Audited</div>
-                </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-[#536B5B]">
+                <span className="inline-flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#39754B]" /> Verified retailers</span>
+                <span className="inline-flex items-center gap-2"><MapPin className="w-4 h-4 text-[#39754B]" /> Local coverage</span>
+                <span className="inline-flex items-center gap-2"><Scale className="w-4 h-4 text-[#39754B]" /> Compare prices</span>
               </div>
             </div>
 
-            {/* Authentic Commercial Photography */}
-            <div className="lg:col-span-5">
-              <div className="relative rounded-xl overflow-hidden border border-[#E2E8F0] bg-[#06265B] shadow-md">
-                <img
-                  src="/images/hero-uyo-delivery.jpg"
-                  alt="Gasflo verified cooking gas delivery in Uyo, Akwa Ibom residential estate"
-                  className="w-full h-[320px] sm:h-[400px] object-cover"
-                />
-                <div className="bg-white border-t border-[#E2E8F0] p-4 flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-bold text-[#06265B]">
-                      Dedicated Gasflo Field Dispatchers
-                    </div>
-                    <div className="text-[11px] text-[#64748B]">
-                      Sealed digital-scale cylinders · Live route tracking · PIN handover
-                    </div>
-                  </div>
-                  <Link
-                    to="/explore?view=compare"
-                    className="shrink-0 px-3 py-1.5 rounded-lg bg-[#EAF3FF] text-[#073B8C] text-xs font-bold hover:bg-[#dbeafe]"
-                  >
-                    Compare Rates
-                  </Link>
+            {/* Illustrative image; the marketplace remains the source of retailer details. */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative overflow-hidden rounded-[2rem] bg-[#DDE8DB] shadow-xl shadow-[#1C3D2C]/10">
+                <img src="/images/gasflo-delivery-hero.jpg" alt="Illustration of a cooking gas delivery at a home" className="w-full h-[340px] sm:h-[460px] lg:h-[610px] object-cover object-[68%_center]" />
+                <div className="absolute bottom-5 left-5 right-5 rounded-2xl bg-white/95 backdrop-blur-sm px-5 py-4 flex items-center gap-3 shadow-lg">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E8F2E7] text-[#39754B]"><MapPin className="w-5 h-5" /></div>
+                  <div><p className="text-sm font-extrabold text-[#173E30]">Made for your neighbourhood</p><p className="text-xs text-[#64746B] mt-0.5">Find gas retailers near your location</p></div>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Simple service overview, inspired by the reference's approachable layout. */}
+      <section className="bg-white py-16 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-end mb-10">
+            <div className="lg:col-span-7"><span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#55916A]">A simpler way to refill</span><h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl leading-tight font-extrabold tracking-tight text-[#163A2C]">Less searching.<br />More time for life.</h2></div>
+            <p className="lg:col-span-5 text-sm sm:text-base leading-relaxed text-[#6B7970]">Gasflo helps you explore retailers around you, check coverage and compare gas prices without the guesswork.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: MapPin, title: 'Find your location', text: 'Use your device location or select a point on the map to check nearby retailers.' },
+              { icon: Scale, title: 'Compare with confidence', text: 'Browse available gas products and compare retailer prices in one place.' },
+              { icon: Truck, title: 'Keep track of delivery', text: 'Follow delivery progress and dispatcher location when tracking is available.' },
+            ].map((card, index) => <div key={card.title} className="rounded-[1.5rem] bg-[#F5F8F1] p-7 sm:p-8 flex flex-col min-h-[210px]">
+              <div className="flex items-center justify-between"><span className="h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-[#39754B]"><card.icon className="w-5 h-5" /></span><span className="text-xs font-bold text-[#9BAEA0]">0{index + 1}</span></div>
+              <h3 className="mt-7 text-lg font-extrabold text-[#173E30]">{card.title}</h3><p className="mt-2 text-sm leading-relaxed text-[#67786B]">{card.text}</p>
+            </div>)}
           </div>
         </div>
       </section>
@@ -368,7 +352,7 @@ export function HomePage() {
       </section>
 
       {/* Popular Gas Quantities & Accessories */}
-      <section className="bg-white border-y border-[#E2E8F0] py-12">
+      <section id="how-it-works" className="bg-white border-y border-[#E2E8F0] py-16 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
@@ -513,7 +497,7 @@ export function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="bg-white border-y border-[#E2E8F0] py-12">
+      <section id="how-it-works" className="bg-white border-y border-[#E2E8F0] py-16 scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-9">
             <span className="text-xs font-bold uppercase tracking-wider text-[#1769C2]">How Gasflo Works</span>
@@ -533,7 +517,7 @@ export function HomePage() {
               {
                 step: '02',
                 icon: Wallet,
-                title: 'Pay Cashlessly Online',
+                title: 'Payments Coming Soon',
                 desc: 'Online payments and ordering are temporarily unavailable while payment processing is being set up.',
               },
               {
