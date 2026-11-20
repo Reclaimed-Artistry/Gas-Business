@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ShieldCheck, UserCheck, Truck, Lock, AlertTriangle, Loader2 } from 'lucide-react';
+import { Lock, AlertTriangle, Loader2, Flame } from 'lucide-react';
+import './login-effects.css';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/BrandLogo';
 
@@ -50,6 +51,7 @@ export function LoginPage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [flameOn, setFlameOn] = useState(false);
 
   const redirectUser = (role: string) => {
     const storedOAuthRedirect = consumeOAuthRedirect();
@@ -104,31 +106,45 @@ export function LoginPage() {
     }
   };
 
-  const handleQuickDemo = async (demoEmail: string, demoPassword: string) => {
-    setError('');
-    setSubmitting(true);
-    try {
-      const u = await login(demoEmail, demoPassword);
-      redirectUser(u.role);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const displayError = error || oauthError || '';
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Auth Card */}
-        <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-xl p-6 sm:p-8 space-y-6">
+    <div className={`gas-login ${flameOn ? 'gas-login--lit' : ''}`}>
+      <div className="gas-login-glow" aria-hidden="true" />
+      <div className="gas-login-layout">
+        <section className="gas-login-scene" aria-label="Gasflo cooking gas illustration">
+          <div className="gas-login-scene-copy">
+            <span className="gas-login-eyebrow"><Flame size={15} aria-hidden="true" /> MADE FOR EVERYDAY LIFE</span>
+            <h1>Good food starts with <span>a little flame.</span></h1>
+            <p>Find cooking gas closer to home. Welcome to Gasflo.</p>
+          </div>
+          <div className="gas-art" aria-hidden="true">
+            <div className="gas-art-glow" />
+            <div className="gas-flame gas-flame-outer"><div className="gas-flame-inner" /></div>
+            <div className="gas-burner"><div className="gas-burner-top" /><div className="gas-burner-ring" /></div>
+            <div className="gas-cylinder-neck" />
+            <div className="gas-cylinder">
+              <div className="gas-cylinder-highlight" />
+              <div className="gas-cylinder-label"><Flame size={27} strokeWidth={1.8} /><span>GASFLO</span></div>
+            </div>
+            <div className="gas-cylinder-foot" />
+          </div>
+          <button type="button" className="gas-ignite" aria-pressed={flameOn} onClick={() => setFlameOn(on => !on)}>
+            <Flame size={17} aria-hidden="true" /> {flameOn ? 'Turn off the glow' : 'Light the flame'}
+          </button>
+          <p className="gas-ignite-hint">Just for fun — your sign-in is ready whenever you are.</p>
+        </section>
+        <div className="gas-login-card bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 space-y-6">
           <div className="flex items-center justify-between">
             <BrandLogo />
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#16834A] bg-[#ECFDF3] px-2.5 py-1 rounded-md border border-[#BBF7D0]">
               <Lock className="w-3 h-3" /> Encrypted Access
             </span>
+          </div>
+
+          <div>
+            <h2 className="text-2xl font-extrabold text-[#06265B]">{mode === 'login' ? 'Welcome back' : 'Join Gasflo'}</h2>
+            <p className="mt-1 text-sm text-[#64748B]">{mode === 'login' ? 'Sign in to access your account.' : 'Create your customer account to get started.'}</p>
           </div>
 
           <div className="grid grid-cols-2 p-1 rounded-lg bg-[#F7F9FC] border border-[#E2E8F0]">
@@ -142,7 +158,7 @@ export function LoginPage() {
                 mode === 'login' ? 'bg-[#073B8C] text-white' : 'text-[#64748B] hover:text-[#06265B]'
               }`}
             >
-              Sign In (All Roles)
+              Sign in
             </button>
             <button
               type="button"
@@ -154,7 +170,7 @@ export function LoginPage() {
                 mode === 'register' ? 'bg-[#073B8C] text-white' : 'text-[#64748B] hover:text-[#06265B]'
               }`}
             >
-              New Customer Account
+              Create account
             </button>
           </div>
 
@@ -195,8 +211,8 @@ export function LoginPage() {
             {mode === 'register' && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-[#172B4D] mb-1">Full Name</label>
-                  <input
+                  <label htmlFor="full-name" className="block text-xs font-semibold text-[#172B4D] mb-1">Full Name</label>
+                  <input id="full-name"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
@@ -205,8 +221,8 @@ export function LoginPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#172B4D] mb-1">Phone Number (Nigeria)</label>
-                  <input
+                  <label htmlFor="phone" className="block text-xs font-semibold text-[#172B4D] mb-1">Phone Number (Nigeria)</label>
+                  <input id="phone"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -218,9 +234,10 @@ export function LoginPage() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-[#172B4D] mb-1">Email Address</label>
-              <input
+              <label htmlFor="email" className="block text-xs font-semibold text-[#172B4D] mb-1">Email Address</label>
+              <input id="email"
                 type="email"
+                autoComplete="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -230,9 +247,10 @@ export function LoginPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#172B4D] mb-1">Password</label>
-              <input
+              <label htmlFor="password" className="block text-xs font-semibold text-[#172B4D] mb-1">Password</label>
+              <input id="password"
                 type="password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 required
                 minLength={8}
                 value={password}
@@ -243,7 +261,7 @@ export function LoginPage() {
             </div>
 
             {displayError && (
-              <div className="flex items-start gap-2 p-3 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#D64545]">
+              <div role="alert" className="flex items-start gap-2 p-3 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#D64545]">
                 <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{displayError}</span>
               </div>
@@ -262,11 +280,7 @@ export function LoginPage() {
             </button>
           </form>
 
-          <div className="p-3.5 rounded-lg bg-[#EAF3FF] border border-[#BFDBFE] text-xs text-[#073B8C] leading-relaxed">
-            <strong>Platform Access Policy:</strong> Public self-registration & Google Sign-In automatically provision{' '}
-            <strong>Customer</strong> accounts with digital wallets. Dispatcher accounts are onboarded exclusively by
-            Gasflo Operations, and Uyo gas retailers are centrally managed without self-service logins.
-          </div>
+          <p className="text-xs text-[#64748B] leading-relaxed">Customer accounts can be created here. Dispatchers are onboarded by Gasflo Operations.</p>
         </div>
 
       </div>

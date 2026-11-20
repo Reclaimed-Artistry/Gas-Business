@@ -1,0 +1,67 @@
+/* Scoped to login: the decorative flame never blocks access to the form. */
+.gas-login {
+  position: relative;
+  overflow: hidden;
+  background: #071b25;
+  color: white;
+  padding: 64px 20px;
+  isolation: isolate;
+}
+.gas-login-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 28% 55%, rgba(36, 163, 217, .25), transparent 45%);
+  opacity: .28;
+  transition: opacity .7s ease;
+}
+.gas-login--lit .gas-login-glow { opacity: 1; }
+.gas-login-layout {
+  position: relative;
+  max-width: 1060px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 460px);
+  align-items: center;
+  gap: 64px;
+}
+.gas-login-scene { text-align: center; }
+.gas-login-scene-copy { max-width: 410px; margin: 0 auto; }
+.gas-login-eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #91dfeb; font-size: 11px; font-weight: 800; letter-spacing: .14em; }
+.gas-login-scene h1 { color: #fff; font-size: clamp(30px, 3.5vw, 44px); line-height: 1.1; font-weight: 800; letter-spacing: -.04em; margin: 14px 0; }
+.gas-login-scene h1 span { color: #81d9f4; }
+.gas-login-scene-copy p { color: #bbd0d7; font-size: 15px; line-height: 1.6; }
+.gas-art { position: relative; height: 290px; width: 260px; margin: 10px auto 8px; }
+.gas-art-glow { position: absolute; width: 220px; height: 190px; top: 5px; left: 20px; background: radial-gradient(ellipse, rgba(74,198,255,.45), transparent 70%); opacity: 0; transition: opacity .7s; }
+.gas-login--lit .gas-art-glow { opacity: 1; }
+.gas-cylinder { position: absolute; left: 46px; top: 143px; width: 168px; height: 127px; border-radius: 38px 38px 27px 27px; background: linear-gradient(100deg,#1a6581,#348caa 45%,#145875); border: 2px solid #4e9db4; box-shadow: inset -15px 0 25px rgba(0,20,35,.3), 0 18px 32px rgba(0,0,0,.25); }
+.gas-cylinder-highlight { position: absolute; left: 16px; top: 19px; width: 8px; height: 75px; border-radius: 8px; background: rgba(255,255,255,.12); }
+.gas-cylinder-label { position: absolute; inset: 30px 0 0; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #d6f6ff; font-size: 10px; font-weight: 800; letter-spacing: .22em; }
+.gas-cylinder-neck { position:absolute; left: 98px; top: 126px; width: 64px; height: 25px; border-radius: 5px; background: #296980; }
+.gas-cylinder-foot { position:absolute; left: 71px; top: 263px; width: 118px; height: 14px; border: 5px solid #27657c; border-top: 0; border-radius: 0 0 7px 7px; }
+.gas-burner { position:absolute; left: 77px; top: 112px; width: 106px; height: 18px; border-radius: 50%; background: #183947; border: 3px solid #6b8e96; z-index: 2; }
+.gas-burner-top { position:absolute; left: 10px; right: 10px; top: -9px; height: 12px; border-radius: 50%; background: #172c35; border: 2px solid #89a8ae; }
+.gas-burner-ring { position:absolute; left: 19px; right: 19px; top: 0; height: 3px; border-radius: 50%; background: #8ad9f4; }
+.gas-flame { position: absolute; opacity: 0; transition: opacity .5s ease, transform .5s ease; transform-origin: bottom center; transform: scale(.7); }
+.gas-flame-outer { left: 94px; top: 24px; width: 72px; height: 89px; background: linear-gradient(to top,#1e7fe3,#6fe6ff 70%,#d4f8ff); border-radius: 75% 15% 65% 45%; rotate: -45deg; box-shadow: 0 0 32px rgba(65,190,255,.55); }
+.gas-flame-inner { position: absolute; width: 32px; height: 46px; bottom: 6px; left: 21px; background: #e9fbff; border-radius: 75% 15% 65% 45%; }
+.gas-login--lit .gas-flame { opacity: 1; transform: scale(1); }
+.gas-ignite { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #77cbe2; border-radius: 999px; padding: 11px 18px; color: #e1faff; background: #123f50; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, border-color .2s; }
+.gas-ignite:hover { background: #1a596c; border-color: #c0f3ff; }
+.gas-ignite:focus-visible { outline: 3px solid #b9ecff; outline-offset: 4px; }
+.gas-ignite-hint { color: #a9c3cb; font-size: 12px; margin-top: 10px; }
+.gas-login-card { color: #172b4d; box-shadow: 0 24px 60px rgba(0,0,0,.25); }
+@media (prefers-reduced-motion: no-preference) {
+  .gas-login-scene { animation: gas-enter-left .65s ease-out both; }
+  .gas-login-card { animation: gas-enter-right .65s ease-out both; }
+  @keyframes gas-enter-left { from { opacity: 0; transform: translateX(-35px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes gas-enter-right { from { opacity: 0; transform: translateX(35px); } to { opacity: 1; transform: translateX(0); } }
+}
+@media (prefers-reduced-motion: reduce) { .gas-login-glow, .gas-art-glow, .gas-flame, .gas-ignite { transition: none; } }
+@media (max-width: 767px) {
+  .gas-login { padding: 36px 16px 48px; }
+  .gas-login-layout { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .gas-login-scene h1 { font-size: 30px; }
+  .gas-art { transform: scale(.78); margin: -20px auto -20px; }
+  .gas-login-card { width: 100%; max-width: 460px; margin: 0 auto; }
+}
