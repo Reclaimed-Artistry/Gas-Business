@@ -90,7 +90,10 @@
   }
   [data-scroll-reveal].scroll-reveal-pending:not(:focus-within) {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateX(-48px);
+  }
+  [data-scroll-reveal][data-scroll-direction="right"].scroll-reveal-pending:not(:focus-within) {
+    transform: translateX(48px);
   }
   [data-scroll-reveal]:nth-child(2) { transition-delay: 80ms; }
   [data-scroll-reveal]:nth-child(3) { transition-delay: 160ms; }

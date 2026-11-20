@@ -105,7 +105,8 @@ export function HomePage() {
         target.classList.toggle('scroll-reveal-pending', !isIntersecting);
       });
     }, { threshold: 0 });
-    elements.forEach((element) => {
+    elements.forEach((element, index) => {
+      element.dataset.scrollDirection = index % 2 === 0 ? 'left' : 'right';
       const bounds = element.getBoundingClientRect();
       // Keep content already on screen visible on reload or back navigation.
       if (bounds.top >= window.innerHeight || bounds.bottom <= 0) {
@@ -135,7 +136,7 @@ export function HomePage() {
   const coveringCount = data?.retailers.filter((r) => r.coverage.canDeliver).length ?? 0;
 
   return (
-    <div ref={pageRef} className="bg-[#F8F9F7]">
+    <div ref={pageRef} className="bg-[#F8F9F7] overflow-x-clip">
       {/* Hero Section */}
       <section className="bg-[#F7F8F3] border-b border-[#E5E9E1]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
