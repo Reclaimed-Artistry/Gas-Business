@@ -10,6 +10,7 @@ import { ExplorePage } from './pages/ExplorePage';
 import { RetailerDetailPage } from './pages/RetailerDetailPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { LoginPage } from './pages/LoginPage';
+import { OrderPage } from './pages/OrderPage';
 import type { UserRole } from './types';
 
 const CustomerDashboard = lazy(() =>
@@ -65,6 +66,7 @@ export function App() {
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/explore" element={<ExplorePage />} />
+                    <Route path="/order" element={<OrderPage />} />
                     <Route path="/retailers/:id" element={<RetailerDetailPage />} />
                     <Route path="/checkout" element={<CheckoutPage />} />
                     <Route path="/login" element={<LoginPage />} />

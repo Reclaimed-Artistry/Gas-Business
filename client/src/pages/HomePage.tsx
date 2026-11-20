@@ -153,10 +153,10 @@ export function HomePage() {
                 Find nearby gas retailers, compare prices and explore delivery coverage in Uyo—all in one place.
               </p>
               <div className="flex flex-wrap gap-3">
-                <button type="button" disabled aria-describedby="ordering-status" className="inline-flex items-center justify-center rounded-full bg-[#D7E0D6] px-7 py-3.5 text-sm font-bold text-[#485D4D] cursor-not-allowed">
+                <Link to="/order" className="inline-flex items-center justify-center rounded-full bg-[#173E30] px-7 py-3.5 text-sm font-bold text-white hover:bg-[#285B43] transition-colors">
                   Order now
-                </button>
-                <Link to="/explore" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#173E30] px-7 py-3.5 text-sm font-bold text-white hover:bg-[#285B43] transition-colors">
+                </Link>
+                <Link to="/explore" className="inline-flex items-center justify-center gap-2 rounded-full border border-[#C7D5C8] px-7 py-3.5 text-sm font-bold text-[#173E30] hover:bg-white transition-colors">
                   Explore retailers <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a href="#how-it-works" className="inline-flex items-center justify-center rounded-full border border-[#C7D5C8] px-7 py-3.5 text-sm font-bold text-[#173E30] hover:bg-white transition-colors">How it works</a>

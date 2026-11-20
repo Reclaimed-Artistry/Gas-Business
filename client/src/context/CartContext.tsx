@@ -10,6 +10,7 @@ interface CartContextValue {
   totalItems: number;
   subtotalKobo: number;
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => { switchedRetailer: boolean };
+  replaceItem: (item: Omit<CartItem, 'quantity'>, quantity: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   removeItem: (productId: number) => void;
   clearCart: () => void;
@@ -101,6 +102,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         totalItems,
         subtotalKobo,
         addItem,
+        replaceItem: (item, quantity) => persist([{ ...item, quantity: Math.min(item.maxStock, Math.max(1, quantity)) }]),
         updateQuantity,
         removeItem,
         clearCart,
